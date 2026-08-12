@@ -19,7 +19,7 @@ bars(
 \item{data}{\code{data.frame} Long rows; one row per observation (\code{stat = "count"})
 or one row per category/segment (\code{stat = "identity"}).}
 
-\item{spec}{\code{list} Chart specification, typically from \code{\link[=bars_spec]{bars_spec()}}.}
+\item{spec}{\code{list} Chart specification, typically from \code{bars_spec()}.}
 
 \item{metadata}{\code{list} Named list of report keys (e.g. \code{chartId}) echoed in
 event payloads. Not a data.frame — event consumers expect a JSON object.}

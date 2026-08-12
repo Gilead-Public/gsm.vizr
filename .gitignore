@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.RData
+.httr-oauth
+.DS_Store
+.quarto
+tests/playwright/node_modules/
+tests/playwright/fixture/
+tests/playwright/test-results/

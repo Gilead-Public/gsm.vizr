@@ -1,3 +1,20 @@
+// Revive js_hook() slots: the R side sends function bodies as strings plus
+// the dot-paths where they live (allowlisted in R), so eval never touches
+// arbitrary spec content.
+function reviveHooks(spec, paths) {
+  (paths || []).forEach(function (path) {
+    var keys = path.split('.');
+    var parent = spec;
+    for (var i = 0; i < keys.length - 1; i++) {
+      parent = parent && parent[keys[i]];
+    }
+    var leaf = keys[keys.length - 1];
+    if (parent && typeof parent[leaf] === 'string') {
+      parent[leaf] = eval('(' + parent[leaf] + ')');
+    }
+  });
+}
+
 HTMLWidgets.widget({
   name: 'bars',
   type: 'output',
@@ -5,6 +22,9 @@ HTMLWidgets.widget({
     return {
       renderValue: function (input) {
         if (input.bDebug) console.log(input);
+        // Before any render branch: the facet path passes the same spec object
+        // through to facetBars, so revival has to happen ahead of the dispatch.
+        reviveHooks(input.spec, input.jsHooks);
         var meta = input.metadata || {};
         // Report pattern: a stable chartId for report-level event wiring.
         // Shiny outputs keep their outputId - do not pass chartId under Shiny.

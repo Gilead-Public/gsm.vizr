@@ -68,3 +68,20 @@ facet_bars(dfFacet, bars_spec(x = "site", fill = "flag"),
 )
 ```
 </div>
+
+## js_hook tooltip formatter
+
+<div id="page-hooks">
+```{r hooks}
+bars(
+  dfSites,
+  bars_spec(
+    x = "site", fill = "flag",
+    tooltip = list(formatter = js_hook(
+      "function (value, context, details) { return 'Subjects: ' + value; }"
+    ))
+  ),
+  metadata = list(chartId = "chart-hooks")
+)
+```
+</div>

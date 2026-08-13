@@ -88,8 +88,26 @@ HTMLWidgets.widget({
         reviveHooks(input.spec, input.jsHooks);
         var meta = input.metadata || {};
         // Report pattern: a stable chartId for report-level event wiring.
-        // Shiny outputs keep their outputId - do not pass chartId under Shiny.
-        if (meta.chartId) el.id = meta.chartId;
+        // Under Shiny the outputId is load-bearing: the proxy handler resolves
+        // its target with getElementById(outputId), and the event glue derives
+        // input$<id>_click/_select from it. Renaming the element there breaks
+        // both silently - the proxy message finds nothing and returns, and the
+        // inputs are written under an id the server never reads. So ignore
+        // chartId under Shiny and say so, rather than leaving it to a comment.
+        if (meta.chartId) {
+          if (HTMLWidgets.shinyMode) {
+            console.warn(
+              'gsm.vizr: ignoring metadata.chartId "' +
+                meta.chartId +
+                '" for Shiny output "' +
+                el.id +
+                '". Shiny outputs keep their outputId, which the proxy verbs ' +
+                'and input$<id>_click/_select are keyed on.'
+            );
+          } else {
+            el.id = meta.chartId;
+          }
+        }
         el.classList.add('gsm-vizr');
         // Container floor: dynamicSizing may set el.style.height, but it can
         // never collapse the widget below the configured minimum.

@@ -6,7 +6,7 @@
 #'
 #' @param data `data.frame` Long rows; one row per observation (`stat = "count"`)
 #'   or one row per category/segment (`stat = "identity"`).
-#' @param spec `list` Chart specification, typically from `bars_spec()`.
+#' @param spec `list` Chart specification, typically from [bars_spec()].
 #' @param metadata `list` Named list of report keys (e.g. `chartId`) echoed in
 #'   event payloads. Not a data.frame — event consumers expect a JSON object.
 #' @param width,height,elementId Standard htmlwidgets arguments.

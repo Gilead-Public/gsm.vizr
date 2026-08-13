@@ -2,3 +2,5 @@
 
 export(bars)
 export(bars_spec)
+export(facet_bars)
+export(facet_spec)

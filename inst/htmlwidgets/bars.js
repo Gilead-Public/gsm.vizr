@@ -13,7 +13,15 @@ HTMLWidgets.widget({
         // Container floor: dynamicSizing may set el.style.height, but it can
         // never collapse the widget below the configured minimum.
         el.style.minHeight = (input.minHeight || 0) + 'px';
-        el.gsmChart = gsmViz.default.bars(el, input.data, input.spec);
+        // facetBars reads the facet config off the spec, but it travels as its
+        // own payload slot so bars() and facet_bars() share one binding.
+        if (input.facet) {
+          var spec = input.spec;
+          spec.facet = input.facet;
+          el.gsmFacet = gsmViz.default.facetBars(el, input.data, spec);
+        } else {
+          el.gsmChart = gsmViz.default.bars(el, input.data, input.spec);
+        }
       },
       resize: function (width, height) {}
     };

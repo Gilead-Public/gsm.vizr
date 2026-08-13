@@ -63,3 +63,43 @@ bars <- function(
     )
   )
 }
+
+#' Render a faceted set of gsm.viz bars charts
+#'
+#' Thin htmlwidget over `gsmViz.default.facetBars` — one sub-chart per
+#' unique value of the facet field, in a shared grid with linked hover.
+#' @inheritParams bars
+#' @param facet `list` Facet configuration from [facet_spec()].
+#' @return A `bars` htmlwidget rendering via facetBars.
+#' @export
+facet_bars <- function(
+  data,
+  spec,
+  facet,
+  metadata = list(),
+  width = NULL,
+  height = NULL,
+  elementId = NULL,
+  minHeight = 500,
+  bDebug = FALSE
+) {
+  # facetBars delegates to the bars validator and then adds this; checking it
+  # before bars() means the message names the real problem rather than surfacing
+  # as a malformed order object in the browser.
+  .check_order_array_or_function(
+    .pluck(spec, "scales", "x", "order"),
+    "spec.scales.x.order"
+  )
+  w <- bars(
+    data,
+    spec,
+    metadata = metadata,
+    width = width,
+    height = height,
+    elementId = elementId,
+    minHeight = minHeight,
+    bDebug = bDebug
+  )
+  w$x$facet <- .vizr_json(.prepare_facet(facet))
+  w
+}

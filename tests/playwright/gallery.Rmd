@@ -49,3 +49,22 @@ bars(dfSingle, bars_spec(x = "site", fill = "flag"),
 )
 ```
 </div>
+
+## Facet dispatch
+
+<div id="page-facet">
+```{r facet}
+# Guards the facet branch of the binding: bars() and facet_bars() share one
+# htmlwidget, so the only thing routing to facetBars is the presence of the
+# facet payload slot. Later tasks edit this binding repeatedly.
+dfFacet <- data.frame(
+  site = rep(c("S-001", "S-002"), 4),
+  flag = rep(c("2", "1"), each = 4),
+  country = rep(c("USA", "CAN"), each = 4)
+)
+facet_bars(dfFacet, bars_spec(x = "site", fill = "flag"),
+  facet_spec("country", nCol = 2),
+  metadata = list(chartId = "chart-facet")
+)
+```
+</div>

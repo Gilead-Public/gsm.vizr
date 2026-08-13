@@ -32,3 +32,30 @@ test('single-level factors render instead of throwing on a scalar order', async 
   expect(labels).toEqual(['S-001']);
   expect(errors).toEqual([]);
 });
+
+// bars() and facet_bars() share one binding; the presence of the facet payload
+// slot is the only thing routing to facetBars. Assert on el.gsmFacet rather than
+// a canvas count — the bars branch would also paint canvases, so a dispatch
+// regression that silently rendered a single un-faceted chart would slip past.
+test('facet_bars() dispatches to facetBars and builds one chart per facet', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(GALLERY);
+  const facet = await page.evaluate(() => {
+    const el = document.getElementById('chart-facet');
+    return {
+      hasFacet: !!el.gsmFacet,
+      hasPlainChart: !!el.gsmChart,
+      charts: el.gsmFacet ? el.gsmFacet.charts.length : 0,
+      labels: el.gsmFacet ? el.gsmFacet.charts.map((c) => c.data.labels) : null,
+    };
+  });
+  expect(facet.hasFacet).toBe(true);
+  expect(facet.hasPlainChart).toBe(false);
+  expect(facet.charts).toBe(2);
+  expect(facet.labels).toEqual([
+    ['S-001', 'S-002'],
+    ['S-001', 'S-002'],
+  ]);
+  expect(errors).toEqual([]);
+});

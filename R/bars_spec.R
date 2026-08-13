@@ -328,3 +328,110 @@ bars_spec <- function(
     .fail(path, " must be a string or function")
   }
 }
+
+#' Build a facetBars facet configuration
+#'
+#' Keys map 1:1 to gsm.viz `spec.facet` (field, order, nCol, chartHeight,
+#' label, scales, legend).
+#' @param field `character(1)` Column to facet by. Required.
+#' @param order,nCol,chartHeight,label,scales,legend Passed through 1:1.
+#' @return A plain list for [facet_bars()].
+#' @export
+facet_spec <- function(
+  field,
+  order = NULL,
+  nCol = NULL,
+  chartHeight = NULL,
+  label = NULL,
+  scales = NULL,
+  legend = NULL
+) {
+  facet <- .drop_null(list(
+    field = field,
+    order = order,
+    nCol = nCol,
+    chartHeight = chartHeight,
+    label = label,
+    scales = scales,
+    legend = legend
+  ))
+  .validate_facet_spec(facet)
+  facet
+}
+
+# Mirrors gsm.viz src/facetBars/validateSpec.js (2.4.1) message-for-message and
+# in the same order. facetBars validates a different set than bars, so
+# facet_bars() is the only entrypoint these branches guard.
+.validate_facet_spec <- function(facet) {
+  if (is.null(facet)) {
+    .fail("spec.facet is required")
+  }
+  .check_object(facet, "spec.facet")
+
+  field <- .pluck(facet, "field")
+  # Upstream tests falsiness first, so "" is "required" rather than "mistyped".
+  if (is.null(field) || (is.character(field) && !any(nzchar(field)))) {
+    .fail("spec.facet.field is required")
+  }
+  if (!is.character(field) || length(field) != 1) {
+    .fail("spec.facet.field must be a string")
+  }
+
+  # Upstream only asks for an array, but .normalize_spec_arrays() turns every R
+  # vector into one, so that check could never fire from R. Requiring character
+  # instead catches the real mistake it is standing in for: an order given as
+  # something other than the facet's own labels.
+  order <- .pluck(facet, "order")
+  if (!is.null(order) && !is.character(order)) {
+    .fail("spec.facet.order must be an array")
+  }
+  .check_positive_int(.pluck(facet, "nCol"), "spec.facet.nCol")
+  .check_positive_number(
+    .pluck(facet, "chartHeight"),
+    "spec.facet.chartHeight"
+  )
+
+  .check_object(.pluck(facet, "scales"), "spec.facet.scales")
+  .check_flag(.pluck(facet, "scales", "x", "free"), "spec.facet.scales.x.free")
+  .check_flag(.pluck(facet, "scales", "y", "free"), "spec.facet.scales.y.free")
+
+  .check_object(.pluck(facet, "legend"), "spec.facet.legend")
+  .check_flag(.pluck(facet, "legend", "sync"), "spec.facet.legend.sync")
+  if (!is.null(.pluck(facet, "legend", "chart"))) {
+    warning(
+      "facetBars: spec.facet.legend.chart is deprecated and has no effect. ",
+      "Legends now display on every facet. Use spec.facet.legend.sync ",
+      "to control whether legend clicks propagate across facets.",
+      call. = FALSE
+    )
+  }
+  .check_flag(.pluck(facet, "legend", "display"), "spec.facet.legend.display")
+
+  .check_object(.pluck(facet, "label"), "spec.facet.label")
+  .check_enum(
+    .pluck(facet, "label", "position"),
+    c("top", "bottom"),
+    "spec.facet.label.position"
+  )
+  .check_string(.pluck(facet, "label", "font"), "spec.facet.label.font")
+
+  invisible(facet)
+}
+
+# The facet slot ships separately from spec, so it gets its own preparation.
+.prepare_facet <- function(facet) {
+  .validate_facet_spec(facet)
+  facet$order <- .as_json_array(facet$order)
+  facet
+}
+
+# facetBars adds this one check on top of the bars spec it delegates to; bars()
+# itself never type-checks scales.x.order.
+.check_order_array_or_function <- function(value, path) {
+  if (is.null(value) || inherits(value, c("JS_EVAL", "AsIs"))) {
+    return(invisible())
+  }
+  if (!is.atomic(value) || !is.null(names(value))) {
+    .fail(path, " must be an array or a function")
+  }
+}

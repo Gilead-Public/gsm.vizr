@@ -421,6 +421,9 @@ facet_spec <- function(
 # The facet slot ships separately from spec, so it gets its own preparation.
 .prepare_facet <- function(facet) {
   .validate_facet_spec(facet)
+  # facetBars has no function-valued facet slots, so a hook here would serialize
+  # as a bare string and be ignored without any diagnostic.
+  .assert_no_stray_js(facet, path = "facet")
   facet$order <- .as_json_array(facet$order)
   facet
 }

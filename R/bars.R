@@ -44,6 +44,7 @@ bars <- function(
   payload <- list(
     data = .vizr_json(data),
     spec = .vizr_json(prepared$spec),
+    jsHooks = .vizr_json(as.list(prepared$hooks)),
     metadata = .vizr_json(metadata),
     minHeight = minHeight,
     bDebug = isTRUE(bDebug)

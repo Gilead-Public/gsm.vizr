@@ -24,5 +24,6 @@ Config/testthat/edition: 3
 Depends: 
     R (>= 4.0)
 Imports: 
+    htmltools,
     htmlwidgets,
     jsonlite

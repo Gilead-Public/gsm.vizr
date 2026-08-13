@@ -90,5 +90,8 @@
     spec <- .derive_orders(data, spec)
   }
   spec <- .normalize_spec_arrays(spec)
-  list(spec = spec, hooks = character()) # hook extraction wired in Task 8
+  # After normalization, not before: .as_json_array() deliberately leaves
+  # JS_EVAL values alone, so a function-valued order must still be a hook here.
+  hooks <- .extract_js_hooks(spec)
+  list(spec = hooks$spec, hooks = hooks$paths)
 }

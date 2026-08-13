@@ -6,7 +6,7 @@
 \alias{renderBars}
 \title{Shiny bindings for bars}
 \usage{
-barsOutput(outputId, width = "100\%", height = "400px")
+barsOutput(outputId, width = "100\%", height = "500px")
 
 renderBars(expr, env = parent.frame(), quoted = FALSE)
 }
@@ -19,5 +19,14 @@ binding parameters.}
 returns a render function for that output.
 }
 \description{
-Shiny bindings for bars
+\code{height} and the \code{minHeight} of the widget it renders apply to the same
+container, and \code{minHeight} is a floor, so it wins. The default here matches
+\code{\link[=bars]{bars()}}'s default \code{minHeight} for that reason. To render an output shorter
+than 500px, lower both — \code{barsOutput(height = "300px")} alone stays 500px
+tall until the widget is built with \code{bars(..., minHeight = 300)}.
+}
+\details{
+A \code{metadata$chartId} is ignored under Shiny: the output id is what the proxy
+verbs and \verb{input$<id>_click} / \verb{input$<id>_select} are keyed on, so the
+binding keeps it and warns instead of renaming the element.
 }

@@ -24,3 +24,13 @@ test_that("barsOutput() honours width and height", {
   expect_match(html, "width:640px", fixed = TRUE)
   expect_match(html, "height:320px", fixed = TRUE)
 })
+
+test_that("the default output height matches the default minHeight floor", {
+  # Both apply to the same container and minHeight wins, so defaults that
+  # disagree mean the stub's height can never take effect: measured 500px for
+  # a 400px output. Keep them tied so the out-of-box case is coherent.
+  skip_if_not_installed("shiny")
+  default_height <- formals(barsOutput)$height
+  default_floor <- formals(bars)$minHeight
+  expect_identical(default_height, paste0(default_floor, "px"))
+})

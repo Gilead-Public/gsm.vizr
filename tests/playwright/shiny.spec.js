@@ -141,3 +141,30 @@ test('a chart in a hidden Shiny tab is sized to its container on reveal', async 
     )
     .toBe(true);
 });
+
+// A metadata$chartId must not rename a Shiny output element. The proxy handler
+// resolves its target with getElementById(outputId) and the event glue derives
+// input$<id>_click/_select from the same id, so a rename makes every proxy verb
+// a silent no-op and writes inputs the server never reads - with no error.
+test('a chartId does not rename a Shiny output, and warns instead', async ({ page }) => {
+  const warnings = [];
+  page.on('console', (m) => {
+    if (m.type() === 'warning') warnings.push(m.text());
+  });
+  await page.goto(APP);
+  // The chartId output lives in a tab, and Shiny suspends hidden outputs, so it
+  // has not rendered yet - reveal it or renderValue never runs.
+  await page.click('a:has-text("hiddenTab")');
+  await expect(page.locator('#tabChart canvas')).toBeVisible();
+
+  const ids = await page.evaluate(() => ({
+    outputIdKept: !!document.getElementById('tabChart'),
+    renamed: !!document.getElementById('should-be-ignored-under-shiny'),
+  }));
+  expect(ids.outputIdKept).toBe(true);
+  expect(ids.renamed).toBe(false);
+
+  // Ignoring it silently would be its own trap, so the author gets told.
+  expect(warnings.join('\n')).toContain('should-be-ignored-under-shiny');
+  expect(warnings.join('\n')).toContain('tabChart');
+});

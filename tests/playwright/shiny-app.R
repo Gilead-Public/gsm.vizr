@@ -53,7 +53,14 @@ server <- function(input, output, session) {
   output$facetChart <- renderBars(
     facet_bars(dfF, bars_spec(x = "site", fill = "flag"), facet_spec("country"))
   )
-  output$tabChart <- renderBars(bars(dfA, bars_spec(x = "site", fill = "flag")))
+  # Carries a chartId deliberately: under Shiny the binding must KEEP the
+  # outputId and warn, because the proxy verbs and input$<id>_click/_select are
+  # keyed on it. Renaming the element breaks both without any error.
+  output$tabChart <- renderBars(
+    bars(dfA, bars_spec(x = "site", fill = "flag"),
+      metadata = list(chartId = "should-be-ignored-under-shiny")
+    )
+  )
   output$sel <- renderPrint(input$chart_select)
   observeEvent(
     input$btnSelect,

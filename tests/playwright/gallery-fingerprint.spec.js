@@ -29,6 +29,15 @@ const EXPECTED_CHARTS = [
   'chart-zoom',
   'chart-dense-legend',
   'chart-multi-select',
+  // Task 16 pages (chart-facet is already listed above — it landed at Task 7):
+  'chart-qtl-replica',
+  'chart-endpoints-replica',
+  'chart-pd-dependency',
+  'chart-empty',
+  'chart-static-helpers',
+  'chart-qtl-identity',
+  'chart-outside-labels',
+  'chart-dynamic-many',
 ];
 
 // Structural fingerprint per chart: category labels, dataset shapes, axis
@@ -59,6 +68,11 @@ async function fingerprints(page) {
             : null,
           captions:
             s.labels && s.labels.captions ? [].concat(s.labels.captions).length : 0,
+          // Chart and axis titles are supported spec keys (labels.title,
+          // scales.x/y.label) that every downstream consumer sets.
+          title: (s.labels && s.labels.title) || null,
+          xLabel: (s.scales && s.scales.x && s.scales.x.label) || null,
+          yLabel: (s.scales && s.scales.y && s.scales.y.label) || null,
           datasets: ch.data.datasets.map((d) => ({
             label: d.label === undefined ? null : d.label,
             n: d.data.length,

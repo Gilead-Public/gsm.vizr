@@ -63,7 +63,10 @@ dfFacet <- data.frame(
   country = rep(c("USA", "CAN"), each = 4)
 )
 facet_bars(dfFacet, bars_spec(x = "site", fill = "flag"),
-  facet_spec("country", nCol = 2),
+  # An explicit facet order also covers the small-multiples case: facet$order
+  # never passes through .derive_orders(), so this is the array slot that only
+  # .normalize_spec_arrays() protects.
+  facet_spec("country", order = c("USA", "CAN"), nCol = 2),
   metadata = list(chartId = "chart-facet")
 )
 ```
@@ -239,6 +242,234 @@ bars(dfSites, bars_spec(
   selection = list(enabled = TRUE, multiple = TRUE)
 ),
 metadata = list(chartId = "chart-multi-select")
+)
+```
+</div>
+
+## gsm.qtl replica — participant-level counts, horizontal, footnotes
+
+<div id="page-qtl">
+```{r qtl-replica}
+# Participant-level rows (stat count), horizontal, position fill, captions,
+# minHeight floor: the exact shape of the gsm.qtl eligibility functions.
+# position = "fill" is load-bearing - it is what makes this a 100%-normalized
+# chart rather than a raw stack. Rows stay participant-level so gsm.viz does
+# the counting before it normalizes.
+set.seed(158)
+dfSubj <- data.frame(
+  invid = factor(sample(sprintf("INV-%d", 1:6), 60, replace = TRUE)),
+  category = factor(sample(c("Eligible", "Excluded", "Pending"), 60, replace = TRUE),
+    levels = c("Eligible", "Excluded", "Pending")
+  )
+)
+bars(dfSubj,
+  bars_spec(
+    x = "invid", fill = "category", orientation = "horizontal",
+    position = "fill",
+    theme = list(dynamicSizing = TRUE),
+    labels = list(captions = c(
+      "Counts of participants by investigator.",
+      "Source: synthetic gallery data."
+    ))
+  ),
+  metadata = list(chartId = "chart-qtl-replica")
+)
+```
+</div>
+
+## gsm.endpoints replica — pre-aggregated stack, in-bar labels, 2-line tooltip
+
+<div id="page-endpoints">
+```{r endpoints-replica}
+dfPfs <- data.frame(
+  site = rep(c("S-001", "S-002", "S-003"), each = 2),
+  status = factor(rep(c("Event", "Censored"), times = 3),
+    levels = c("Event", "Censored")
+  ),
+  n = c(12, 30, 7, 25, 15, 18),
+  pct = c(28.6, 71.4, 21.9, 78.1, 45.5, 54.5)
+)
+bars(dfPfs,
+  bars_spec(
+    x = "site", y = "n", fill = "status", stat = "identity",
+    scales = list(fill = list(colors = c(Event = "#c91b1d", Censored = "#4e79a7"))),
+    annotations = list(labels = list(segment = list(display = TRUE))),
+    tooltip = list(formatter = js_hook(
+      "function (value, context, details) {
+         var d = (details && details.datum) || {};
+         return [d.status + ': ' + d.n, 'Rate: ' + d.pct + '%'];
+       }"
+    ))
+  ),
+  metadata = list(chartId = "chart-endpoints-replica")
+)
+```
+</div>
+
+## PD-pattern widget on the shared dependency (no bars())
+
+<div id="page-pd">
+```{r pd-dependency}
+# A downstream package's custom widget: raw htmltools + the shared bundle
+# dependency, calling gsmViz.default.bars directly (the gsm.kri PD pattern).
+htmltools::attachDependencies(
+  htmltools::tagList(
+    htmltools::div(id = "chart-pd-dependency", class = "gsm-vizr"),
+    htmltools::tags$script(htmltools::HTML(sprintf(
+      "document.addEventListener('DOMContentLoaded', function () {
+         var el = document.getElementById('chart-pd-dependency');
+         el.gsmChart = gsmViz.default.bars(el, %s, %s);
+       });",
+      jsonlite::toJSON(data.frame(bucket = c("AE", "PD", "Other"), n = c(4, 2, 1)),
+        dataframe = "rows", na = "null", auto_unbox = TRUE
+      ),
+      jsonlite::toJSON(list(mapping = list(x = "bucket", y = "n"), stat = "identity"),
+        auto_unbox = TRUE
+      )
+    )))
+  ),
+  html_dependency_gsm_viz()
+)
+```
+</div>
+
+## Empty data renders gracefully (no placeholder — upstream draft 5)
+
+<div id="page-empty">
+```{r empty}
+bars(data.frame(site = character(), flag = character()),
+  bars_spec(x = "site", fill = "flag"),
+  metadata = list(chartId = "chart-empty")
+)
+```
+</div>
+
+## Driving a chart from a static report — `chart.helpers`, no Shiny
+
+<div id="page-static-helpers">
+```{r static-helpers}
+# THE access path for static rmarkdown consumers. bars_proxy() requires a Shiny
+# session; gsm.endpoints' reports and gsm.kri's Report_PrematureDeaths.Rmd are
+# plain `output: html_document`, so their drilldowns must call chart.helpers
+# from report JS instead. Everything the proxy verbs wrap is reachable here.
+dfStatic <- data.frame(
+  site = rep(c("S-001", "S-002", "S-003"), times = c(4, 3, 2)),
+  flag = rep(c("2", "1", "0"), times = 3)
+)
+htmltools::tagList(
+  bars(dfStatic,
+    bars_spec(x = "site", fill = "flag", selection = list(enabled = TRUE)),
+    metadata = list(chartId = "chart-static-helpers")
+  ),
+  htmltools::tags$script(htmltools::HTML(sprintf(
+    "window.__staticRows = %s;",
+    jsonlite::toJSON(dfStatic, dataframe = "rows", auto_unbox = TRUE)
+  ))),
+  htmltools::tags$button(
+    id = "btn-static-update", "drop S-003",
+    onclick = "var ch = document.getElementById('chart-static-helpers').gsmChart;
+               ch.helpers.updateData(ch, window.__staticRows.filter(
+                 function (r) { return r.site !== 'S-003'; }), ch.data._spec_);"
+  ),
+  htmltools::tags$button(
+    id = "btn-static-select", "select S-001",
+    onclick = "var ch = document.getElementById('chart-static-helpers').gsmChart;
+               ch.helpers.selectCategory(ch, ['S-001'], undefined, {_silent: true});"
+  )
+)
+```
+</div>
+
+## gsm.qtl replica 2 — pre-aggregated identity stack (the dominant real shape)
+
+<div id="page-qtl-identity">
+```{r qtl-identity}
+# The count + position="fill" replica above covers bPercentage. But 7 of the 8
+# charts on gsm.kri's Report_Eligibility.Rmd are PRE-AGGREGATED (summarize/count)
+# horizontal plain stacks - stat = "identity". The mode matters beyond shape:
+# it decides whether event `datum` is one row or an array of rows.
+#
+# Also the title carrier: gsm.viz supports a chart title (labels$title) and
+# axis titles (scales$x$label / scales$y$label), which every gsm.endpoints
+# chart and all 8 eligibility charts set.
+dfElig <- data.frame(
+  invid = factor(rep(sprintf("INV-%d", 1:4), each = 3),
+    levels = sprintf("INV-%d", 4:1)
+  ),
+  criteria = factor(rep(c("Ineligible", "No Eligibility Risk", "Neither"), 4),
+    levels = c("Ineligible", "No Eligibility Risk", "Neither")
+  ),
+  n = c(3, 8, 1, 5, 6, 2, 1, 9, 3, 4, 4, 4)
+)
+bars(dfElig,
+  bars_spec(
+    x = "invid", y = "n", fill = "criteria", stat = "identity",
+    orientation = "horizontal",
+    scales = list(
+      x = list(label = "Investigator"),
+      y = list(label = "Participants"),
+      fill = list(colors = c(
+        Ineligible = "#FF5859", `No Eligibility Risk` = "#00BFC4",
+        Neither = "#7CAE00"
+      ))
+    ),
+    labels = list(
+      title = "Eligibility criteria by investigator",
+      captions = paste(
+        "Participants screened between 2026-01-01 and 2026-06-30;",
+        "sites with fewer than 5 screened are pooled into INV-4."
+      )
+    )
+  ),
+  metadata = list(chartId = "chart-qtl-identity")
+)
+```
+</div>
+
+## Outside total labels — known-limitation reproduction case
+
+<div id="page-outside-labels">
+```{r outside-labels}
+# 5 of the 8 eligibility charts render outside total labels (geom_text with
+# nudge + a scale expansion reserving room). Upstream clips them near the axis
+# maximum; this page is the reproduction case for that ask, NOT a passing
+# fidelity demo. The assertions only check the labels are configured and the
+# chart renders - the clipping itself stays visible and documented.
+bars(data.frame(site = sprintf("S-%02d", 1:5), n = c(9, 22, 14, 3, 25)),
+  bars_spec(
+    x = "site", y = "n", stat = "identity", orientation = "horizontal",
+    annotations = list(labels = list(
+      total = list(display = TRUE, placement = "outside")
+    ))
+  ),
+  metadata = list(chartId = "chart-outside-labels")
+)
+```
+</div>
+
+## dynamicSizing above the floor (24 categories at the gsm.qtl growth rate)
+
+<div id="page-dynamic-many">
+```{r dynamic-many}
+# chart-dynamic has 2 categories, so the 500px floor always wins and the
+# per-category growth rate is never observed. Real eligibility and KRI reports
+# run 20+ sites, where dynamicSizing governs and minHeight is irrelevant.
+# gsm.qtl's calc_fig_size() grows at 25px/site: max(500, 25 * n). gsm.viz
+# exposes that rate as theme$pxPerCategory (default 30), so the growth rate is
+# reproducible rather than a known divergence - this page pins it at 25.
+set.seed(24)
+dfMany <- data.frame(
+  invid = factor(rep(sprintf("INV-%02d", 1:24), each = 2)),
+  flag = factor(rep(c("2", "1"), 24), levels = c("2", "1")),
+  n = sample(1:9, 48, replace = TRUE)
+)
+bars(dfMany,
+  bars_spec(
+    x = "invid", y = "n", fill = "flag", stat = "identity",
+    orientation = "horizontal",
+    theme = list(dynamicSizing = TRUE, pxPerCategory = 25)
+  ),
+  metadata = list(chartId = "chart-dynamic-many")
 )
 ```
 </div>

@@ -12,3 +12,4 @@
 ^AGENTS\.md$
 ^tests/playwright$
 ^tests/testthat/_problems$
+^vignettes/articles$

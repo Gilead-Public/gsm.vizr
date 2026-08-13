@@ -8,3 +8,7 @@ tests/playwright/node_modules/
 tests/playwright/fixture/
 tests/playwright/test-results/
 tests/testthat/_problems/
+inst/doc
+
+# pkgdown site is built and deployed by the pkgdown-all workflow, not committed.
+docs/

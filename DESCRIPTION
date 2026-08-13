@@ -27,3 +27,6 @@ Imports:
     htmltools,
     htmlwidgets,
     jsonlite
+VignetteBuilder: knitr
+URL: https://github.com/Gilead-Public/gsm.vizr, https://gilead-public.github.io/gsm.vizr/
+BugReports: https://github.com/Gilead-Public/gsm.vizr/issues

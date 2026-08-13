@@ -38,6 +38,55 @@ function resizeOnReveal(el) {
   obs.observe(el);
 }
 
+if (window.Shiny) {
+  Shiny.addCustomMessageHandler('gsm-vizr-proxy', function (msg) {
+    var el = document.getElementById(msg.id);
+    // Facet widgets store el.gsmFacet, not el.gsmChart. Returning quietly here
+    // would make every proxy verb a no-op with nothing in the console - fail
+    // loudly instead; facet proxy support is deferred past 0.1.0.
+    if (el && el.gsmFacet) {
+      throw new Error(
+        'gsm.vizr: proxy verb "' +
+          msg.verb +
+          '" is not supported on the faceted widget "' +
+          msg.id +
+          '" (bars() widgets only in 0.1.0)'
+      );
+    }
+    var ch = el && el.gsmChart;
+    if (!ch) return;
+    var h = ch.helpers;
+    var a = msg.args || {};
+    var opts = { _silent: a.silent !== false };
+    // Revive js_hook() slots on updates exactly as renderValue does on first
+    // render; without this a hook sent by proxy stays a string and upstream
+    // rejects it.
+    if (a.spec) reviveHooks(a.spec, a.jsHooks);
+    switch (msg.verb) {
+      case 'updateData':
+        // No spec sent -> reuse the live spec: the browser copy is
+        // authoritative after positionToggle/nCategoriesToggle mutations.
+        h.updateData(ch, a.data, a.spec != null ? a.spec : ch.data._spec_);
+        break;
+      case 'updateSpec':
+        h.updateSpec(ch, a.spec);
+        break;
+      case 'selectCategory':
+        h.selectCategory(ch, a.values, undefined, opts);
+        break;
+      case 'selectSegment':
+        h.selectSegment(ch, a.values, undefined, opts);
+        break;
+      case 'clearSelection':
+        h.clearSelection(ch, undefined, opts);
+        break;
+      case 'exportImage':
+        h.exportImage(ch, a.filename != null ? a.filename : undefined);
+        break;
+    }
+  });
+}
+
 HTMLWidgets.widget({
   name: 'bars',
   type: 'output',

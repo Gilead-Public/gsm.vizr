@@ -37,9 +37,13 @@ bars <- function(
     stop("metadata must be a list", call. = FALSE)
   }
 
+  # Validation, order derivation and array normalization all live here so a spec
+  # sent later by the proxy verbs is treated identically to this first render.
+  prepared <- .prepare_spec(spec, data = data)
+
   payload <- list(
     data = .vizr_json(data),
-    spec = .vizr_json(spec),
+    spec = .vizr_json(prepared$spec),
     metadata = .vizr_json(metadata),
     minHeight = minHeight,
     bDebug = isTRUE(bDebug)

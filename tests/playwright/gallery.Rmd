@@ -31,3 +31,21 @@ bars(dfSites, list(mapping = list(x = "site", fill = "flag")),
 )
 ```
 </div>
+
+## Single-level factors (order arrays of length one)
+
+<div id="page-singleton">
+```{r singleton}
+# One level on both aesthetics is the case auto_unbox would collapse to
+# "order":"S1". Upstream then calls explicitOrder.filter() on a string and dies
+# with an uncaught TypeError, so the chart is blank and R reports nothing. This
+# page is the browser-side proof that .normalize_spec_arrays() prevents it.
+dfSingle <- data.frame(
+  site = factor("S-001", levels = "S-001"),
+  flag = factor("2", levels = "2")
+)
+bars(dfSingle, bars_spec(x = "site", fill = "flag"),
+  metadata = list(chartId = "chart-singleton")
+)
+```
+</div>

@@ -137,3 +137,108 @@ bars(
 )
 ```
 </div>
+
+## Horizontal stack, identity, named colors, captions
+
+<div id="page-hbar">
+```{r hbar}
+dfFlags <- data.frame(
+  invid = factor(rep(c("INV-3", "INV-1", "INV-2"), each = 2),
+    levels = c("INV-3", "INV-1", "INV-2")
+  ),
+  flag = factor(rep(c("2", "1"), times = 3), levels = c("2", "1")),
+  n = c(5, 2, 4, 1, 2, 2)
+)
+bars(dfFlags,
+  bars_spec(
+    x = "invid", y = "n", fill = "flag",
+    orientation = "horizontal", stat = "identity",
+    scales = list(fill = list(colors = c(`2` = "#c91b1d", `1` = "#fdb84c"))),
+    labels = list(captions = c("Footnote line 1.", "Footnote line 2."))
+  ),
+  metadata = list(chartId = "chart-hbar-stack")
+)
+```
+</div>
+
+## Dodge / 100% fill / percent
+
+<div id="page-positions">
+```{r positions}
+bars(dfSites, bars_spec(x = "site", fill = "flag", position = "dodge"),
+  metadata = list(chartId = "chart-dodge")
+)
+bars(dfSites, bars_spec(x = "site", fill = "flag", position = "fill"),
+  metadata = list(chartId = "chart-fill100")
+)
+bars(dfSites, bars_spec(x = "site", fill = "flag", stat = "percent"),
+  metadata = list(chartId = "chart-percent")
+)
+```
+</div>
+
+## Identity single series + frequency sort + Top-N
+
+<div id="page-ordering">
+```{r ordering}
+dfCounts <- data.frame(site = sprintf("S-%02d", 1:8), n = c(9, 3, 7, 1, 5, 2, 8, 4))
+bars(dfCounts, bars_spec(x = "site", y = "n", stat = "identity"),
+  metadata = list(chartId = "chart-identity")
+)
+bars(dfCounts, bars_spec(
+  x = "site", y = "n", stat = "identity",
+  scales = list(x = list(sort = "total", sortDir = "desc"))
+),
+metadata = list(chartId = "chart-sort-total")
+)
+bars(dfCounts, bars_spec(x = "site", y = "n", stat = "identity", nCategories = 3),
+  metadata = list(chartId = "chart-topn")
+)
+```
+</div>
+
+## Labels, tooltips, reference lines, zoom, dense legend, multi-select
+
+<div id="page-extras">
+```{r extras}
+bars(dfFlags,
+  bars_spec(
+    x = "invid", y = "n", fill = "flag", stat = "identity",
+    annotations = list(labels = list(
+      segment = list(display = TRUE),
+      total = list(display = TRUE)
+    ))
+  ),
+  metadata = list(chartId = "chart-seg-labels")
+)
+bars(dfCounts, bars_spec(
+  x = "site", y = "n", stat = "identity",
+  tooltip = list(format = ",d")
+),
+metadata = list(chartId = "chart-tooltip-format")
+)
+bars(dfCounts, bars_spec(
+  x = "site", y = "n", stat = "identity",
+  annotations = list(referenceLines = list(
+    list(value = 5, label = "Threshold", color = "#c91b1d")
+  ))
+),
+metadata = list(chartId = "chart-reflines")
+)
+bars(dfCounts, bars_spec(
+  x = "site", y = "n", stat = "identity",
+  zoom = list(enabled = TRUE)
+),
+metadata = list(chartId = "chart-zoom")
+)
+bars(dfSites, bars_spec(x = "site", fill = "flag", legend = list(dense = TRUE)),
+  metadata = list(chartId = "chart-dense-legend")
+)
+bars(dfSites, bars_spec(
+  x = "site", fill = "flag",
+  selection = list(enabled = TRUE, multiple = TRUE)
+),
+metadata = list(chartId = "chart-multi-select")
+)
+```
+</div>

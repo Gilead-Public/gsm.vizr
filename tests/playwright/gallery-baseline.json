@@ -1,0 +1,578 @@
+[
+  {
+    "id": "chart-basic",
+    "labels": [
+      "S-001",
+      "S-002",
+      "S-003"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "count",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": "2",
+        "n": 2
+      },
+      {
+        "label": "1",
+        "n": 3
+      },
+      {
+        "label": "0",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "chart-dense-legend",
+    "labels": [
+      "S-001",
+      "S-002",
+      "S-003"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "count",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": true,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": "2",
+        "n": 2
+      },
+      {
+        "label": "1",
+        "n": 3
+      },
+      {
+        "label": "0",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "chart-dodge",
+    "labels": [
+      "S-001",
+      "S-002",
+      "S-003"
+    ],
+    "indexAxis": "x",
+    "position": "dodge",
+    "stat": "count",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": "2",
+        "n": 2
+      },
+      {
+        "label": "1",
+        "n": 3
+      },
+      {
+        "label": "0",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "chart-dynamic",
+    "labels": [
+      "S1",
+      "S2"
+    ],
+    "indexAxis": "y",
+    "position": "stack",
+    "stat": "identity",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": null,
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "chart-facet",
+    "facets": 2
+  },
+  {
+    "id": "chart-fill100",
+    "labels": [
+      "S-001",
+      "S-002",
+      "S-003"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "percent",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": "2",
+        "n": 2
+      },
+      {
+        "label": "1",
+        "n": 3
+      },
+      {
+        "label": "0",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "chart-hbar-stack",
+    "labels": [
+      "INV-3",
+      "INV-1",
+      "INV-2"
+    ],
+    "indexAxis": "y",
+    "position": "stack",
+    "stat": "identity",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 2,
+    "datasets": [
+      {
+        "label": "1",
+        "n": 3
+      },
+      {
+        "label": "2",
+        "n": 3
+      }
+    ]
+  },
+  {
+    "id": "chart-hooks",
+    "labels": [
+      "S-001",
+      "S-002",
+      "S-003"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "count",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": "2",
+        "n": 2
+      },
+      {
+        "label": "1",
+        "n": 3
+      },
+      {
+        "label": "0",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "chart-identity",
+    "labels": [
+      "S-01",
+      "S-02",
+      "S-03",
+      "S-04",
+      "S-05",
+      "S-06",
+      "S-07",
+      "S-08"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "identity",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": null,
+        "n": 8
+      }
+    ]
+  },
+  {
+    "id": "chart-multi-select",
+    "labels": [
+      "S-001",
+      "S-002",
+      "S-003"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "count",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": true,
+      "multiple": true
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": "2",
+        "n": 2
+      },
+      {
+        "label": "1",
+        "n": 3
+      },
+      {
+        "label": "0",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "chart-percent",
+    "labels": [
+      "S-001",
+      "S-002",
+      "S-003"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "percent",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": "2",
+        "n": 2
+      },
+      {
+        "label": "1",
+        "n": 3
+      },
+      {
+        "label": "0",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "chart-reflines",
+    "labels": [
+      "S-01",
+      "S-02",
+      "S-03",
+      "S-04",
+      "S-05",
+      "S-06",
+      "S-07",
+      "S-08"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "identity",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": null,
+        "n": 8
+      }
+    ]
+  },
+  {
+    "id": "chart-seg-labels",
+    "labels": [
+      "INV-3",
+      "INV-1",
+      "INV-2"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "identity",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": "2",
+        "n": 3
+      },
+      {
+        "label": "1",
+        "n": 3
+      }
+    ]
+  },
+  {
+    "id": "chart-select",
+    "labels": [
+      "S-001",
+      "S-002",
+      "S-003"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "count",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": true,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": "2",
+        "n": 2
+      },
+      {
+        "label": "1",
+        "n": 3
+      },
+      {
+        "label": "0",
+        "n": 2
+      }
+    ]
+  },
+  {
+    "id": "chart-select-identity",
+    "labels": [
+      "S-001",
+      "S-002"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "identity",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": true,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": "2",
+        "n": 1
+      },
+      {
+        "label": "1",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "chart-singleton",
+    "labels": [
+      "S-001"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "count",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": "2",
+        "n": 1
+      }
+    ]
+  },
+  {
+    "id": "chart-sort-total",
+    "labels": [
+      "S-01",
+      "S-07",
+      "S-03",
+      "S-05",
+      "S-08",
+      "S-02",
+      "S-06",
+      "S-04"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "identity",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": null,
+        "n": 8
+      }
+    ]
+  },
+  {
+    "id": "chart-tooltip-format",
+    "labels": [
+      "S-01",
+      "S-02",
+      "S-03",
+      "S-04",
+      "S-05",
+      "S-06",
+      "S-07",
+      "S-08"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "identity",
+    "nCategories": null,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": null,
+        "n": 8
+      }
+    ]
+  },
+  {
+    "id": "chart-topn",
+    "labels": [
+      "S-01",
+      "S-07",
+      "S-03"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "identity",
+    "nCategories": 3,
+    "zoom": false,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": null,
+        "n": 3
+      }
+    ]
+  },
+  {
+    "id": "chart-zoom",
+    "labels": [
+      "S-01",
+      "S-02",
+      "S-03",
+      "S-04",
+      "S-05",
+      "S-06",
+      "S-07",
+      "S-08"
+    ],
+    "indexAxis": "x",
+    "position": "stack",
+    "stat": "identity",
+    "nCategories": null,
+    "zoom": true,
+    "denseLegend": false,
+    "selection": {
+      "enabled": false,
+      "multiple": false
+    },
+    "captions": 0,
+    "datasets": [
+      {
+        "label": null,
+        "n": 8
+      }
+    ]
+  }
+]

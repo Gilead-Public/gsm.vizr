@@ -28,15 +28,19 @@ test('a revived hook is callable and returns what the R-side body says', async (
 
 // Revival is driven by the jsHooks path list, not by "looks like a function
 // body". A chart that declared no hooks must come through with none.
-test('charts without hooks gain no revived slots', async ({ page }) => {
+// Only formatter slots are checked: the binding installs its own
+// callbacks.onClick/onSelect on every chart for the gsm-viz-select contract,
+// so those being functions is the event glue working, not stray revival.
+test('charts without hooks gain no revived formatter slots', async ({ page }) => {
   await page.goto(GALLERY);
   const hookish = await page.evaluate(() => {
     const spec = document.getElementById('chart-basic').gsmChart.data._spec_;
+    const labels = (spec.annotations && spec.annotations.labels) || {};
     return {
       tooltipFormatter: typeof (spec.tooltip && spec.tooltip.formatter),
-      onClick: typeof (spec.callbacks && spec.callbacks.onClick),
+      segmentFormatter: typeof (labels.segment && labels.segment.formatter),
     };
   });
   expect(hookish.tooltipFormatter).not.toBe('function');
-  expect(hookish.onClick).not.toBe('function');
+  expect(hookish.segmentFormatter).not.toBe('function');
 });

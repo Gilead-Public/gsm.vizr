@@ -85,3 +85,40 @@ bars(
 )
 ```
 </div>
+
+## Selection enabled (click-to-select)
+
+<div id="page-select">
+```{r select}
+bars(
+  dfSites,
+  bars_spec(x = "site", fill = "flag", selection = list(enabled = TRUE)),
+  metadata = list(chartId = "chart-select", level = "site")
+)
+```
+</div>
+
+## Selection on a pre-aggregated (identity) chart
+
+<div id="page-select-identity">
+```{r select-identity}
+# Same event contract, different `datum` shape. Upstream sets point._datum to
+# the single contributing row under stat "identity" (structureData.js) but to
+# the array of aggregated rows under stat "count" (aggregateCounts.js). The
+# wrapper forwards it unchanged, so both shapes reach consumers and both are
+# asserted in events.spec.js.
+dfIdentity <- data.frame(
+  site = c("S-001", "S-002"),
+  n = c(5, 3),
+  flag = c("2", "1")
+)
+bars(
+  dfIdentity,
+  bars_spec(
+    x = "site", y = "n", fill = "flag", stat = "identity",
+    selection = list(enabled = TRUE)
+  ),
+  metadata = list(chartId = "chart-select-identity", level = "site")
+)
+```
+</div>

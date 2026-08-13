@@ -15,6 +15,29 @@ function reviveHooks(spec, paths) {
   });
 }
 
+// Widgets rendered inside hidden containers (e.g. rmarkdown tabsets) get a
+// zero-size canvas; force one Chart.js resize on first reveal. Static
+// rmarkdown tabsets do not actually need this - htmlwidgets writes explicit
+// dimensions there, so the chart is already correct on reveal - but Shiny
+// sizes widgets from the live DOM, where a hidden tabPanel measures 0x0.
+// Self-disarming: no observer is created for an element that already has size.
+function resizeOnReveal(el) {
+  if (el.offsetWidth > 0 && el.offsetHeight > 0) return;
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      obs.disconnect();
+      if (el.gsmChart) el.gsmChart.resize();
+      if (el.gsmFacet && el.gsmFacet.charts) {
+        el.gsmFacet.charts.forEach(function (c) {
+          c.resize();
+        });
+      }
+    });
+  });
+  obs.observe(el);
+}
+
 HTMLWidgets.widget({
   name: 'bars',
   type: 'output',
@@ -87,6 +110,7 @@ HTMLWidgets.widget({
         } else {
           el.gsmChart = gsmViz.default.bars(el, input.data, spec);
         }
+        resizeOnReveal(el);
       },
       resize: function (width, height) {}
     };

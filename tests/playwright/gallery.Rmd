@@ -122,3 +122,18 @@ bars(
 )
 ```
 </div>
+
+## Dynamic sizing with the minHeight floor (2 categories)
+
+<div id="page-dynamic">
+```{r dynamic}
+bars(
+  data.frame(site = c("S1", "S2"), n = c(4, 2)),
+  bars_spec(
+    x = "site", y = "n", stat = "identity", orientation = "horizontal",
+    theme = list(dynamicSizing = TRUE)
+  ),
+  metadata = list(chartId = "chart-dynamic")
+)
+```
+</div>

@@ -15,28 +15,17 @@ function reviveHooks(spec, paths) {
   });
 }
 
-// Widgets rendered inside hidden containers (e.g. rmarkdown tabsets) get a
-// zero-size canvas; force one Chart.js resize on first reveal. Static
-// rmarkdown tabsets do not actually need this - htmlwidgets writes explicit
-// dimensions there, so the chart is already correct on reveal - but Shiny
-// sizes widgets from the live DOM, where a hidden tabPanel measures 0x0.
-// Self-disarming: no observer is created for an element that already has size.
-function resizeOnReveal(el) {
-  if (el.offsetWidth > 0 && el.offsetHeight > 0) return;
-  var obs = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
-      if (!entry.isIntersecting) return;
-      obs.disconnect();
-      if (el.gsmChart) el.gsmChart.resize();
-      if (el.gsmFacet && el.gsmFacet.charts) {
-        el.gsmFacet.charts.forEach(function (c) {
-          c.resize();
-        });
-      }
-    });
-  });
-  obs.observe(el);
-}
+// No reveal/resize hook here on purpose. Charts rendered inside hidden
+// containers come out correctly sized on reveal in both environments that
+// matter, measured across plain, faceted and dynamicSizing charts: static
+// rmarkdown tabsets (htmlwidgets writes explicit dimensions, so Chart.js never
+// measures the collapsed parent) and Shiny tabPanels (Chart.js's own responsive
+// handling resizes on reveal). See tests/playwright/layout.spec.js and the
+// hidden-tab test in tests/playwright/shiny.spec.js, which assert the chart
+// agrees with its revealed container rather than merely reporting a non-zero
+// width. If a container is ever found where this does break, the fix belongs in
+// the binding's resize() - htmlwidgets calls it on reveal - not in an
+// IntersectionObserver, which would not fire for a pane revealed off-screen.
 
 if (window.Shiny) {
   Shiny.addCustomMessageHandler('gsm-vizr-proxy', function (msg) {
@@ -159,7 +148,6 @@ HTMLWidgets.widget({
         } else {
           el.gsmChart = gsmViz.default.bars(el, input.data, spec);
         }
-        resizeOnReveal(el);
       },
       resize: function (width, height) {}
     };

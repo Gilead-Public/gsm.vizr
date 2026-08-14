@@ -11,6 +11,12 @@ renderers.
 * `barsOutput()`/`renderBars()`/`bars_proxy()` verbs (silent by default).
 * `html_dependency_gsm_viz()` for other packages' custom widgets.
 
+- Relocated the legacy KRI widget wrappers from gsm.kri (#4): `Widget_BarChart`,
+  `Widget_ScatterPlot`, `Widget_TimeSeries`, `Widget_GroupOverview`, their Shiny bindings,
+  `MakeChartConfig()`, and the shared widget-control JS/CSS. gsm.vizr now hosts both the
+  generic `bars` family and the legacy renderers' wrappers, and takes gsm.core (plus dplyr,
+  fontawesome, lifecycle, magrittr, purrr, rlang, tidyr) in Imports.
+
 ## Things to know
 
 `datum` in a `gsm-viz-select` detail follows the chart's `stat`: the single

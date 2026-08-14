@@ -40,7 +40,7 @@ test_that("Widget_GroupOverview returns expected data (#4)", {
   expect_equal(jsonlite::fromJSON(widget$x$strGroupSubset), "red")
 })
 
-test_that("Widget_GroupOverview returns correct class", {
+test_that("Widget_GroupOverview returns correct class (#4)", {
   widgetOutput <- Widget_GroupOverviewOutput("test")
   expect_s3_class(widgetOutput, c("shiny.tag.list", "list"))
 })
@@ -60,7 +60,7 @@ test_that("Widget_GroupOverview uses correct Group or errors out when strGroupLe
   expect_true(grepl(sampleGroupLevel, widget$x$lConfig))
 })
 
-test_that("Widget_GroupOverview assertions works", {
+test_that("Widget_GroupOverview assertions works (#4)", {
   reportingResults_modified <- as.list(gsm.core::reportingResults)
   reportingMetrics_modified <- as.list(gsm.core::reportingMetrics)
   reportingGroups_modified <- as.list(gsm.core::reportingGroups)

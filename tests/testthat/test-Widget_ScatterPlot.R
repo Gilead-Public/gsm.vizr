@@ -19,6 +19,12 @@ test_that("Widget_ScatterPlot creates a valid HTML widget {#4}", {
 })
 
 test_that("Widget_ScatterPlot assertions work {#4}", {
-  expect_error(Widget_ScatterPlot(dfResults = "not a data frame"))
-  expect_error(Widget_ScatterPlot(gsm.core::reportingResults, lMetric = mtcars))
+  expect_error(
+    Widget_ScatterPlot(dfResults = "not a data frame"),
+    "dfResults is not a data.frame"
+  )
+  expect_error(
+    Widget_ScatterPlot(gsm.core::reportingResults, lMetric = mtcars),
+    "lMetric must be a list, but not a data.frame"
+  )
 })

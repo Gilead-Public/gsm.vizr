@@ -18,3 +18,13 @@ rmarkdown::render(
   quiet = TRUE
 )
 cat("Rendered tests/playwright/fixture/tabset.html\n")
+# Separate fixture: the relocated legacy widget must be the only source of the
+# gsmViz dependency on its page, which a gallery carrying bars() charts cannot
+# express (htmltools de-duplicates dependencies by name+version).
+rmarkdown::render(
+  "tests/playwright/legacy-widgets.Rmd",
+  output_file = "legacy-widgets.html",
+  output_dir = "tests/playwright/fixture",
+  quiet = TRUE
+)
+cat("Rendered tests/playwright/fixture/legacy-widgets.html\n")

@@ -28,7 +28,8 @@ Created by passing a list of results returned by \code{gsm.core::Summarize()} to
 reporting. Created by passing an \code{lWorkflow} object to
 \code{gsm.reporting::MakeMetric()} and turing it into a list. Expected columns:
 \code{File},\code{MetricID}, \code{Group}, \code{Abbreviation}, \code{Metric}, \code{Numerator},
-\code{Denominator}, \code{Model}, \code{Score}, and \code{strThreshold}.}
+\code{Denominator}, \code{Model}, \code{Score}, and \code{strThreshold}. For more details see the
+Data Model vignette: \code{vignette("DataModel", package = "gsm.core")}.}
 
 \item{dfGroups}{\code{data.frame} Group-level metadata dictionary. Created by
 passing CTMS site and study data to \code{gsm.mapping::MakeLongMeta()}. Expected

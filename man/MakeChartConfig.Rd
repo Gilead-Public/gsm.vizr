@@ -11,7 +11,8 @@ MakeChartConfig(lMetric, strChartFunction, ...)
 reporting. Created by passing an \code{lWorkflow} object to
 \code{gsm.reporting::MakeMetric()} and turing it into a list. Expected columns:
 \code{File},\code{MetricID}, \code{Group}, \code{Abbreviation}, \code{Metric}, \code{Numerator},
-\code{Denominator}, \code{Model}, \code{Score}, and \code{strThreshold}.}
+\code{Denominator}, \code{Model}, \code{Score}, and \code{strThreshold}. For more details see the
+Data Model vignette: \code{vignette("DataModel", package = "gsm.core")}.}
 
 \item{strChartFunction}{\code{character} Name of chart function.}
 

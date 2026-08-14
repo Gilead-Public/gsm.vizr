@@ -1,12 +1,10 @@
-# gsm.vizr: R Wrappers for the gsm.viz Generic and KRI Chart Renderers
+# gsm.vizr: R Wrapper for the gsm.viz Bar Chart Renderers
 
-An htmlwidgets interface to the gsm.viz JavaScript library, hosting both
-of its chart generations. For the generic bars and facetBars renderers
-it provides spec construction and validation, a stable R-to-JavaScript
-serialization contract, click and selection events, Shiny bindings with
-proxy update verbs, and a shared HTML dependency for other packages
-custom widgets. It also hosts the legacy Key Risk Indicator widget
-wrappers, their Shiny bindings, and the widget controls they share.
+An htmlwidgets interface to the gsm.viz JavaScript library generic bars
+and facetBars renderers. Provides spec construction and validation, a
+stable R-to-JavaScript serialization contract, click and selection
+events, Shiny bindings with proxy update verbs, and a shared HTML
+dependency for other packages custom widgets.
 
 ## See also
 

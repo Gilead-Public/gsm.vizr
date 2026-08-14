@@ -19,14 +19,25 @@ Suggests:
     knitr,
     rmarkdown,
     shiny,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    withr
 Config/testthat/edition: 3
 Depends: 
     R (>= 4.0)
 Imports: 
+    dplyr,
+    fontawesome,
+    gsm.core (>= 1.3.0.9000),
     htmltools,
     htmlwidgets,
-    jsonlite
+    jsonlite,
+    lifecycle,
+    magrittr,
+    purrr,
+    rlang,
+    tidyr
+Remotes: 
+    gsm.core=Gilead-BioStats/gsm.core@dev
 VignetteBuilder: knitr
 URL: https://github.com/Gilead-Public/gsm.vizr, https://gilead-public.github.io/gsm.vizr/
 BugReports: https://github.com/Gilead-Public/gsm.vizr/issues

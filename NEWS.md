@@ -19,6 +19,13 @@ renderers.
 
 ## Things to know
 
+The vendored bundle is the gsm.viz 2.4.1 tag plus one patch carried over from
+gsm.kri#285, which points `SiteRiskScoreURL` at `gilead-public.github.io` instead
+of the pre-rename `gilead-biostats.github.io`. It is therefore not a clean build
+of the tag: a bundle bump must either re-apply the substitution or land on an
+upstream gsm.viz release that already carries it, otherwise the SiteRiskScore
+help link in KRI reports silently regresses.
+
 `datum` in a `gsm-viz-select` detail follows the chart's `stat`: the single
 contributing row under `"identity"`, the array of aggregated rows under
 `"count"`. It is forwarded from gsm.viz unchanged, so consumers must branch on

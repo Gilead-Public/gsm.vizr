@@ -37,7 +37,7 @@ Widget_ScatterPlot(
 
   `list` Metric-specific metadata for use in charts and reporting.
   Created by passing an `lWorkflow` object to
-  `gsm.reporting::MakeMetric()` and turing it into a list. Expected
+  `gsm.reporting::MakeMetric()` and turning it into a list. Expected
   columns: `File`,`MetricID`, `Group`, `Abbreviation`, `Metric`,
   `Numerator`, `Denominator`, `Model`, `Score`, and `strThreshold`. For
   more details see the Data Model vignette:

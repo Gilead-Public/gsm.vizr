@@ -36,15 +36,17 @@ HTMLWidgets.widget({
                     input.bAddGroupSelect
                 );
 
-                // Add a dropdown that changes the outcome variable.
-                const outcomeSelect = addOutcomeSelect(
-                    widgetControls,
-                    input.dfResults,
-                    input.lChartConfig,
-                    input.dfGroups,
-                    input.strOutcome,
-                    input.vOutcomeOptions
-                );
+                // Add a dropdown that changes the outcome variable (only if widgetControls exists).
+                if (widgetControls) {
+                    const outcomeSelect = addOutcomeSelect(
+                        widgetControls,
+                        input.dfResults,
+                        input.lChartConfig,
+                        input.dfGroups,
+                        input.strOutcome,
+                        input.vOutcomeOptions
+                    );
+                }
             },
             resize: function(width, height) {
             }

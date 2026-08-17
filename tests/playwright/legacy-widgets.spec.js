@@ -48,6 +48,23 @@ test('relocated Widget_BarChart resolves every dependency from gsm.vizr', async 
   expect(errors).toEqual([]);
 });
 
+// `addWidgetControls()` returns `{ widgetControls: null }` when bAddGroupSelect is FALSE,
+// and `addOutcomeSelect()` appends into that container unconditionally. Without a guard the
+// binding throws a TypeError mid-render, so the canvas never appears and the page reports an
+// error. Widget_TimeSeries.js has always guarded this call; Widget_BarChart.js had not.
+test('relocated Widget_BarChart renders with bAddGroupSelect = FALSE', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(ISOLATED);
+
+  const container = page.locator('#page-legacy-barchart-nocontrols');
+  await expect(container.locator('canvas')).toBeVisible();
+  // The suppressed controls must genuinely be absent, else the guard is untested.
+  await expect(container.locator('.gsm-widget-controls')).toHaveCount(0);
+
+  expect(errors).toEqual([]);
+});
+
 // The relocated widget must also survive on a page alongside the bars() family, which is
 // how gsm.kri reports compose today. Here the gsmViz bundle is shared rather than
 // resolved from the relocated YAML, so this case proves coexistence, not resolution.

@@ -37,3 +37,23 @@ Widget_BarChart(
 )
 ```
 </div>
+
+## Legacy KRI bar chart with controls suppressed
+
+<!--
+`bAddGroupSelect = FALSE` makes `addWidgetControls()` return a null container,
+which the outcome dropdown must not be handed. Rendering the chart at all is the
+assertion; the binding throws before the canvas appears when the guard is gone.
+-->
+
+<div id="page-legacy-barchart-nocontrols">
+```{r legacy-barchart-nocontrols}
+Widget_BarChart(
+  dfResults = dfResults_legacy,
+  dfGroups = gsm.core::reportingGroups,
+  lMetric = lMetric_legacy,
+  vThreshold = lMetric_legacy$Threshold,
+  bAddGroupSelect = FALSE
+)
+```
+</div>

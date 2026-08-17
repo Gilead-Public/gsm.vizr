@@ -28,7 +28,7 @@ Created by passing a list of results returned by \code{gsm.core::Summarize()} to
 
 \item{lMetric}{\code{list} Metric-specific metadata for use in charts and
 reporting. Created by passing an \code{lWorkflow} object to
-\code{gsm.reporting::MakeMetric()} and turing it into a list. Expected columns:
+\code{gsm.reporting::MakeMetric()} and turning it into a list. Expected columns:
 \code{File},\code{MetricID}, \code{Group}, \code{Abbreviation}, \code{Metric}, \code{Numerator},
 \code{Denominator}, \code{Model}, \code{Score}, and \code{strThreshold}. For more details see the
 Data Model vignette: \code{vignette("DataModel", package = "gsm.core")}.}

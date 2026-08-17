@@ -6,7 +6,7 @@ test_that("Widget_GroupOverview creates a valid HTML widget (#4)", {
     gsm.core::reportingGroups,
     strGroupLevel = "Site"
   )
-  expect_s3_class(widget, c("WidgetGroupOverview", "htmlwidget"))
+  expect_s3_class(widget, c("Widget_GroupOverview", "htmlwidget"))
 })
 
 test_that("Widget_GroupOverview returns expected data (#4)", {

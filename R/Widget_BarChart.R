@@ -61,7 +61,7 @@ Widget_BarChart <- function(
     message = "dfGroups is not a data.frame"
   )
   gsm.core::stop_if(
-    cnd = !length(strOutcome) == 1,
+    cnd = length(strOutcome) != 1,
     message = "strOutcome must be length 1"
   )
   gsm.core::stop_if(

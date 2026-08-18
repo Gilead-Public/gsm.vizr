@@ -120,3 +120,13 @@ test_that("a spec column absent from the data derives no order and does not erro
   df <- data.frame(other = factor("A"))
   expect_silent(bars(df, bars_spec(x = "site")))
 })
+
+test_that("metadata must be named and serializes as an object {#1}", {
+  df <- data.frame(site = "S1")
+  sp <- bars_spec(x = "site")
+  expect_error(bars(df, sp, metadata = list("a")), "metadata must be a named list", fixed = TRUE)
+  expect_error(bars(df, sp, metadata = list(a = 1, 2)), "metadata must be a named list", fixed = TRUE)
+  # default and empty both reach the browser as {} - the documented object shape
+  expect_match(as.character(bars(df, sp)$x$metadata), "^\\{")
+  expect_match(as.character(bars(df, sp, metadata = list(chartId = "c1"))$x$metadata), "^\\{")
+})

@@ -95,7 +95,10 @@ bars_spec <- function(
     if (is.null(.pluck(spec, "mapping"))) {
       .fail("spec.mapping is required")
     }
-    if (is.null(.pluck(spec, "mapping", "x"))) {
+    x <- .pluck(spec, "mapping", "x")
+    # Upstream tests falsiness, so "" and null are both "required"; NA
+    # serializes to null and lands in the same branch browser-side.
+    if (is.null(x) || (is.character(x) && (!any(nzchar(x)) || anyNA(x)))) {
       .fail("spec.mapping.x is required")
     }
   }
@@ -370,7 +373,12 @@ facet_spec <- function(
 
   field <- .pluck(facet, "field")
   # Upstream tests falsiness first, so "" is "required" rather than "mistyped".
-  if (is.null(field) || (is.character(field) && !any(nzchar(field)))) {
+  # nzchar(NA_character_) is TRUE, so anyNA is the guard that actually catches
+  # an NA field; without it NA only fails browser-side.
+  if (
+    is.null(field) ||
+      (is.character(field) && (!any(nzchar(field)) || anyNA(field)))
+  ) {
     .fail("spec.facet.field is required")
   }
   if (!is.character(field) || length(field) != 1) {

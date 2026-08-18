@@ -236,3 +236,12 @@ test_that("captions accept a character vector (regulatory footnotes)", {
   s <- bars_spec(x = "site", labels = list(captions = c("line 1", "line 2")))
   expect_identical(s$labels$captions, c("line 1", "line 2"))
 })
+
+test_that("bars_spec() rejects empty and NA x in R, not the browser {#1}", {
+  expect_error(bars_spec(x = ""), "spec.mapping.x is required", fixed = TRUE)
+  expect_error(bars_spec(x = NA_character_), "spec.mapping.x is required", fixed = TRUE)
+})
+
+test_that("facet_spec() rejects an NA field {#1}", {
+  expect_error(facet_spec(NA_character_), "spec.facet.field is required", fixed = TRUE)
+})

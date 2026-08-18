@@ -38,11 +38,16 @@ function composeEventCallbacks(el, spec, meta, onlyKeys) {
     return (live || spec).orientation === 'horizontal';
   }
   var wrappers = {
-    onClick: function (point, event) {
+    onClick: function (point) {
+      // Plain charts call (point, event); faceted sub-charts call
+      // (point, facetValue, event). Detect by arity and forward everything.
+      var extra = Array.prototype.slice.call(arguments, 1);
+      var facetValue = extra.length > 1 ? extra[0] : null;
       emit(
         {
           type: 'click',
           chartId: el.id,
+          facet: facetValue,
           category: orientation() ? point.y : point.x,
           fill: point._fill !== undefined ? point._fill : null,
           // Shape depends on stat: the aggregated rows array under "count",
@@ -53,14 +58,22 @@ function composeEventCallbacks(el, spec, meta, onlyKeys) {
         },
         '_click'
       );
-      if (userClick) userClick(point, event);
+      if (userClick) userClick.apply(null, arguments);
     },
-    onSelect: function (selection, event) {
+    onSelect: function (selection) {
+      var extra = Array.prototype.slice.call(arguments, 1);
+      var facetValue = extra.length > 1 ? extra[0] : null;
       emit(
-        { type: 'select', chartId: el.id, selection: selection, metadata: meta },
+        {
+          type: 'select',
+          chartId: el.id,
+          facet: facetValue,
+          selection: selection,
+          metadata: meta
+        },
         '_select'
       );
-      if (userSelect) userSelect(selection, event);
+      if (userSelect) userSelect.apply(null, arguments);
     }
   };
   spec.callbacks = spec.callbacks || {};

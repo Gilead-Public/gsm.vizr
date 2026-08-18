@@ -232,3 +232,19 @@ test('switching plain -> facet leaves no stray canvas beside the grid', async ({
   });
   expect(state).toEqual({ straysOutsideGrid: 0, hasChart: false });
 });
+
+test('faceted charts forward facetValue and event to glue and user hooks', async ({ page }) => {
+  await page.goto(APP);
+  await expect(page.locator('#facetChart .gsm-facet-grid')).toBeVisible();
+  const result = await page.evaluate(() => {
+    const el = document.getElementById('facetChart');
+    const charts = (el.gsmFacet && el.gsmFacet.charts) || [];
+    const spec = charts[0] && charts[0].data._spec_;
+    const before = (window.__gsmEvents || []).length;
+    // facetBars invokes sub-chart callbacks as (point, facetValue, event)
+    spec.callbacks.onClick({ x: 'S1', _fill: '1', _datum: [] }, 'USA', { type: 'click' });
+    const events = window.__gsmEvents || [];
+    return { grew: events.length - before, facet: events[events.length - 1].facet };
+  });
+  expect(result).toEqual({ grew: 1, facet: 'USA' });
+});

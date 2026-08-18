@@ -168,3 +168,83 @@ test('a chartId does not rename a Shiny output, and warns instead', async ({ pag
   expect(warnings.join('\n')).toContain('should-be-ignored-under-shiny');
   expect(warnings.join('\n')).toContain('tabChart');
 });
+
+test('event glue survives a spec-carrying proxy_update_data', async ({ page }) => {
+  await page.goto(APP);
+  await expect(page.locator('#chart canvas')).toBeVisible();
+  await page.click('#btnSpecSwap');
+  await expect
+    .poll(() => page.evaluate(() => document.getElementById('chart').gsmChart.data.labels))
+    .toContain('S3');
+  const grew = await page.evaluate(() => {
+    const el = document.getElementById('chart');
+    const before = (window.__gsmEvents || []).length;
+    el.gsmChart.data._spec_.callbacks.onClick({ x: 'S3', _fill: '1', _datum: [] });
+    return (window.__gsmEvents || []).length - before;
+  });
+  expect(grew).toBe(1); // glue re-composed, gsm-viz-select still dispatches
+});
+
+test('event glue wraps a user hook sent via proxy_update_spec', async ({ page }) => {
+  await page.goto(APP);
+  await expect(page.locator('#chart canvas')).toBeVisible();
+  await page.click('#btnSpecHook');
+  const result = await page.evaluate(async () => {
+    const el = document.getElementById('chart');
+    await new Promise((r) => setTimeout(r, 200));
+    const before = (window.__gsmEvents || []).length;
+    el.gsmChart.data._spec_.callbacks.onClick({ x: 'S1', _fill: '1', _datum: [] });
+    return { grew: (window.__gsmEvents || []).length - before, hookRan: window.__hookRan === true };
+  });
+  expect(result).toEqual({ grew: 1, hookRan: true }); // glue AND user hook both run
+});
+
+test('switching facet -> plain tears the facet renderer down', async ({ page }) => {
+  await page.goto(APP);
+  await page.click('#btnType'); // -> facet
+  await expect(page.locator('#switchChart .gsm-facet-grid')).toBeVisible();
+  await page.click('#btnType'); // -> plain
+  await expect(page.locator('#switchChart canvas')).toHaveCount(1);
+  const state = await page.evaluate(() => {
+    const el = document.getElementById('switchChart');
+    return {
+      grids: el.querySelectorAll('.gsm-facet-grid').length,
+      hasFacet: 'gsmFacet' in el && el.gsmFacet !== undefined,
+      hasChart: !!el.gsmChart,
+    };
+  });
+  expect(state).toEqual({ grids: 0, hasFacet: false, hasChart: true });
+});
+
+test('switching plain -> facet leaves no stray canvas beside the grid', async ({ page }) => {
+  await page.goto(APP);
+  await expect(page.locator('#switchChart canvas').first()).toBeVisible(); // plain first
+  await page.click('#btnType'); // -> facet
+  await expect(page.locator('#switchChart .gsm-facet-grid')).toBeVisible();
+  const state = await page.evaluate(() => {
+    const el = document.getElementById('switchChart');
+    return {
+      straysOutsideGrid: Array.from(el.children).filter(
+        (c) => c.tagName === 'CANVAS'
+      ).length,
+      hasChart: 'gsmChart' in el && el.gsmChart !== undefined,
+    };
+  });
+  expect(state).toEqual({ straysOutsideGrid: 0, hasChart: false });
+});
+
+test('faceted charts forward facetValue and event to glue and user hooks', async ({ page }) => {
+  await page.goto(APP);
+  await expect(page.locator('#facetChart .gsm-facet-grid')).toBeVisible();
+  const result = await page.evaluate(() => {
+    const el = document.getElementById('facetChart');
+    const charts = (el.gsmFacet && el.gsmFacet.charts) || [];
+    const spec = charts[0] && charts[0].data._spec_;
+    const before = (window.__gsmEvents || []).length;
+    // facetBars invokes sub-chart callbacks as (point, facetValue, event)
+    spec.callbacks.onClick({ x: 'S1', _fill: '1', _datum: [] }, 'USA', { type: 'click' });
+    const events = window.__gsmEvents || [];
+    return { grew: events.length - before, facet: events[events.length - 1].facet };
+  });
+  expect(result).toEqual({ grew: 1, facet: 'USA' });
+});

@@ -91,7 +91,10 @@ test_that("proxy_update_data() carries hook paths when it carries a spec", {
   proxy_update_data(
     p,
     data.frame(site = "S1"),
-    spec = list(callbacks = list(onClick = js_hook("function () {}")))
+    spec = list(
+      mapping = list(x = "site"),
+      callbacks = list(onClick = js_hook("function () {}"))
+    )
   )
   args <- s$msgs[[1]]$message$args
   expect_identical(jsonlite::fromJSON(args$jsHooks), "callbacks.onClick")
@@ -110,4 +113,30 @@ test_that("every verb returns the proxy invisibly for piping", {
 
 test_that("bars_proxy() outside Shiny errors", {
   expect_error(bars_proxy("chart", session = NULL), "Shiny session")
+})
+
+test_that("proxy_update_data() rejects a partial spec {#1}", {
+  s <- fake_session()
+  p <- bars_proxy("chart", session = s)
+  # updateData replaces the whole browser spec, so a delta must fail in R
+  expect_error(
+    proxy_update_data(
+      p,
+      data.frame(site = "S1"),
+      spec = list(position = "dodge")
+    ),
+    "spec.mapping is required",
+    fixed = TRUE
+  )
+  expect_length(s$msgs, 0)
+  # a complete spec still goes through
+  proxy_update_data(
+    p,
+    data.frame(site = "S1"),
+    spec = list(mapping = list(x = "site"), position = "dodge")
+  )
+  expect_identical(s$msgs[[1]]$message$verb, "updateData")
+  # proxy_update_spec() keeps delta semantics (upstream mergeDeep)
+  proxy_update_spec(p, list(position = "dodge"))
+  expect_identical(s$msgs[[2]]$message$verb, "updateSpec")
 })

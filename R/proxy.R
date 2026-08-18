@@ -4,7 +4,9 @@
 #' default so server-driven updates do not echo select events back to the
 #' server (no feedback loops). `proxy_update_data()` without a spec reuses
 #' the live browser-side spec (`chart.data._spec_`) — the R side never
-#' re-pushes a cached spec over toggle-mutated state.
+#' re-pushes a cached spec over toggle-mutated state. A spec passed to
+#' `proxy_update_data()` must be complete (it replaces the browser spec);
+#' deltas belong to `proxy_update_spec()`.
 #'
 #' Proxy verbs target [bars()] widgets only in 0.1.0. A verb aimed at a
 #' [facet_bars()] widget raises a browser-side error naming the widget and the
@@ -40,7 +42,7 @@ bars_proxy <- function(id, session = shiny::getDefaultReactiveDomain()) {
 proxy_update_data <- function(proxy, data, spec = NULL) {
   args <- list(data = .vizr_json(data))
   if (!is.null(spec)) {
-    args <- c(args, .proxy_spec_args(spec, data = data))
+    args <- c(args, .proxy_spec_args(spec, data = data, partial = FALSE))
   }
   .proxy_send(proxy, "updateData", args)
 }
@@ -51,10 +53,11 @@ proxy_update_spec <- function(proxy, spec) {
   .proxy_send(proxy, "updateSpec", .proxy_spec_args(spec))
 }
 
-# A spec sent as an update gets exactly the preparation a spec sent at first
-# render gets - partial, because an update carries deltas, not a whole spec.
-.proxy_spec_args <- function(spec, data = NULL) {
-  prepared <- .prepare_spec(spec, data = data, partial = TRUE)
+# Upstream updateData REPLACES the live spec wholesale (no merge), so a spec
+# sent with proxy_update_data() must stand alone: partial = FALSE. updateSpec
+# mergeDeep()s into the live spec, so its deltas stay partial = TRUE.
+.proxy_spec_args <- function(spec, data = NULL, partial = TRUE) {
+  prepared <- .prepare_spec(spec, data = data, partial = partial)
   list(
     spec = .vizr_json(prepared$spec),
     jsHooks = .vizr_json(as.list(prepared$hooks))

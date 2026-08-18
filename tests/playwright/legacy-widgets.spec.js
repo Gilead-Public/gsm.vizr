@@ -75,3 +75,17 @@ test('relocated Widget_BarChart coexists with bars() widgets on one page', async
   await expect(page.locator('#page-legacy-barchart canvas')).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+// Both widgets on this page render the same metric and outcome, so a purely
+// data-derived el.id collides. Duplicate DOM ids make getElementById and every
+// `#id` selector resolve to whichever came first.
+test('two widgets for the same metric keep unique element ids', async ({ page }) => {
+  await page.goto(ISOLATED);
+  await expect(page.locator('#page-legacy-barchart canvas')).toBeVisible();
+  const ids = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('[id^="barChart--"]')).map((n) => n.id)
+  );
+  expect(ids.length).toBe(2);
+  expect(new Set(ids).size).toBe(2); // data-derived prefix, unique suffix
+  ids.forEach((id) => expect(id).toMatch(/^barChart--Analysis_kri0001_/));
+});

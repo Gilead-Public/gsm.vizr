@@ -41,7 +41,9 @@ Verbs map 1:1 to \code{chart.helpers}. Selection verbs pass \verb{_silent} by
 default so server-driven updates do not echo select events back to the
 server (no feedback loops). \code{proxy_update_data()} without a spec reuses
 the live browser-side spec (\code{chart.data._spec_}) — the R side never
-re-pushes a cached spec over toggle-mutated state.
+re-pushes a cached spec over toggle-mutated state. A spec passed to
+\code{proxy_update_data()} must be complete (it replaces the browser spec);
+deltas belong to \code{proxy_update_spec()}.
 }
 \details{
 Proxy verbs target \code{\link[=bars]{bars()}} widgets only in 0.1.0. A verb aimed at a

@@ -27,6 +27,8 @@ ui <- fluidPage(
   actionButton("btnClear", "proxy clear"),
   actionButton("btnSwap", "swap data"),
   actionButton("btnHook", "proxy a js_hook tooltip"),
+  actionButton("btnSpecSwap", "updateData with a full spec"),
+  actionButton("btnSpecHook", "updateSpec with an onClick hook"),
   barsOutput("facetChart"),
   actionButton("btnFacet", "proxy a facet (must fail loudly)"),
   actionButton("btnBoth", "facet verb + valid verb in one flush"),
@@ -85,6 +87,21 @@ server <- function(input, output, session) {
       )
     )
   )
+  observeEvent(input$btnSpecSwap, {
+    proxy_update_data(
+      bars_proxy("chart"),
+      dfB,
+      spec = bars_spec(x = "site", fill = "flag", selection = list(enabled = TRUE))
+    )
+  })
+  observeEvent(input$btnSpecHook, {
+    proxy_update_spec(
+      bars_proxy("chart"),
+      list(callbacks = list(
+        onClick = js_hook("function (pt) { window.__hookRan = true; }")
+      ))
+    )
+  })
   observeEvent(input$btnFacet, proxy_clear_selection(bars_proxy("facetChart")))
   # Both messages leave in one reactive flush, so the browser receives them in
   # a single batch. The facet verb throws inside the message handler; this is

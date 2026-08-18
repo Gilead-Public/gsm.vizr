@@ -168,3 +168,33 @@ test('a chartId does not rename a Shiny output, and warns instead', async ({ pag
   expect(warnings.join('\n')).toContain('should-be-ignored-under-shiny');
   expect(warnings.join('\n')).toContain('tabChart');
 });
+
+test('event glue survives a spec-carrying proxy_update_data', async ({ page }) => {
+  await page.goto(APP);
+  await expect(page.locator('#chart canvas')).toBeVisible();
+  await page.click('#btnSpecSwap');
+  await expect
+    .poll(() => page.evaluate(() => document.getElementById('chart').gsmChart.data.labels))
+    .toContain('S3');
+  const grew = await page.evaluate(() => {
+    const el = document.getElementById('chart');
+    const before = (window.__gsmEvents || []).length;
+    el.gsmChart.data._spec_.callbacks.onClick({ x: 'S3', _fill: '1', _datum: [] });
+    return (window.__gsmEvents || []).length - before;
+  });
+  expect(grew).toBe(1); // glue re-composed, gsm-viz-select still dispatches
+});
+
+test('event glue wraps a user hook sent via proxy_update_spec', async ({ page }) => {
+  await page.goto(APP);
+  await expect(page.locator('#chart canvas')).toBeVisible();
+  await page.click('#btnSpecHook');
+  const result = await page.evaluate(async () => {
+    const el = document.getElementById('chart');
+    await new Promise((r) => setTimeout(r, 200));
+    const before = (window.__gsmEvents || []).length;
+    el.gsmChart.data._spec_.callbacks.onClick({ x: 'S1', _fill: '1', _datum: [] });
+    return { grew: (window.__gsmEvents || []).length - before, hookRan: window.__hookRan === true };
+  });
+  expect(result).toEqual({ grew: 1, hookRan: true }); // glue AND user hook both run
+});

@@ -15,6 +15,60 @@ function reviveHooks(spec, paths) {
   });
 }
 
+// Install the wrapper event contract (dispatch gsm-viz-select, mirror to
+// Shiny inputs, then run any user hook) onto a spec. Called at first render
+// AND for every spec that travels through a proxy verb: upstream updateData
+// rebuilds _spec_ from the supplied spec, and updateSpec replaces any
+// callback the delta carries - either way the glue must be re-composed.
+// onlyKeys limits composition to the callbacks a delta actually carries, so
+// an updateSpec delta without onSelect cannot clobber the live wrapper.
+function composeEventCallbacks(el, spec, meta, onlyKeys) {
+  var userClick = spec.callbacks && spec.callbacks.onClick;
+  var userSelect = spec.callbacks && spec.callbacks.onSelect;
+  function emit(detail, suffix) {
+    el.dispatchEvent(
+      new CustomEvent('gsm-viz-select', { bubbles: true, detail: detail })
+    );
+    if (window.Shiny && el.id) {
+      Shiny.setInputValue(el.id + suffix, detail, { priority: 'event' });
+    }
+  }
+  function orientation() {
+    var live = el.gsmChart && el.gsmChart.data && el.gsmChart.data._spec_;
+    return (live || spec).orientation === 'horizontal';
+  }
+  var wrappers = {
+    onClick: function (point, event) {
+      emit(
+        {
+          type: 'click',
+          chartId: el.id,
+          category: orientation() ? point.y : point.x,
+          fill: point._fill !== undefined ? point._fill : null,
+          // Shape depends on stat: the aggregated rows array under "count",
+          // the single contributing row under "identity". Forwarded
+          // unchanged - see the event contract in the vignette.
+          datum: point._datum !== undefined ? point._datum : null,
+          metadata: meta
+        },
+        '_click'
+      );
+      if (userClick) userClick(point, event);
+    },
+    onSelect: function (selection, event) {
+      emit(
+        { type: 'select', chartId: el.id, selection: selection, metadata: meta },
+        '_select'
+      );
+      if (userSelect) userSelect(selection, event);
+    }
+  };
+  spec.callbacks = spec.callbacks || {};
+  Object.keys(wrappers).forEach(function (k) {
+    if (!onlyKeys || onlyKeys.indexOf(k) !== -1) spec.callbacks[k] = wrappers[k];
+  });
+}
+
 // No reveal/resize hook here on purpose. Charts rendered inside hidden
 // containers come out correctly sized on reveal in both environments that
 // matter, measured across plain, faceted and dynamicSizing charts: static
@@ -51,6 +105,15 @@ if (window.Shiny) {
     // render; without this a hook sent by proxy stays a string and upstream
     // rejects it.
     if (a.spec) reviveHooks(a.spec, a.jsHooks);
+    if (a.spec) {
+      var deltaKeys =
+        msg.verb === 'updateSpec' && a.spec.callbacks
+          ? Object.keys(a.spec.callbacks)
+          : null;
+      if (msg.verb === 'updateData' || deltaKeys) {
+        composeEventCallbacks(el, a.spec, el.gsmMeta || {}, deltaKeys);
+      }
+    }
     switch (msg.verb) {
       case 'updateData':
         // No spec sent -> reuse the live spec: the browser copy is
@@ -115,48 +178,10 @@ HTMLWidgets.widget({
 
         // Wrapper event contract: always dispatch gsm-viz-select (bubbling)
         // and mirror to Shiny inputs; user hooks (already revived) run after.
+        // gsmMeta is stashed so a proxy update can re-compose the same glue.
         var spec = input.spec;
-        var userClick = spec.callbacks && spec.callbacks.onClick;
-        var userSelect = spec.callbacks && spec.callbacks.onSelect;
-        function emit(detail, suffix) {
-          el.dispatchEvent(
-            new CustomEvent('gsm-viz-select', { bubbles: true, detail: detail })
-          );
-          if (window.Shiny && el.id) {
-            Shiny.setInputValue(el.id + suffix, detail, { priority: 'event' });
-          }
-        }
-        spec.callbacks = Object.assign({}, spec.callbacks, {
-          onClick: function (point, event) {
-            emit(
-              {
-                type: 'click',
-                chartId: el.id,
-                category: spec.orientation === 'horizontal' ? point.y : point.x,
-                fill: point._fill !== undefined ? point._fill : null,
-                // Shape depends on stat: the aggregated rows array under
-                // "count", the single contributing row under "identity".
-                // Forwarded unchanged - see the event contract in the vignette.
-                datum: point._datum !== undefined ? point._datum : null,
-                metadata: meta
-              },
-              '_click'
-            );
-            if (userClick) userClick(point, event);
-          },
-          onSelect: function (selection, event) {
-            emit(
-              {
-                type: 'select',
-                chartId: el.id,
-                selection: selection,
-                metadata: meta
-              },
-              '_select'
-            );
-            if (userSelect) userSelect(selection, event);
-          }
-        });
+        el.gsmMeta = meta;
+        composeEventCallbacks(el, spec, meta);
 
         // facetBars reads the facet config off the spec, but it travels as its
         // own payload slot so bars() and facet_bars() share one binding.

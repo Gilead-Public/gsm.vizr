@@ -89,3 +89,20 @@ test('two widgets for the same metric keep unique element ids', async ({ page })
   expect(new Set(ids).size).toBe(2); // data-derived prefix, unique suffix
   ids.forEach((id) => expect(id).toMatch(/^barChart--Analysis_kri0001_/));
 });
+
+// Labels and option values are plain data - GroupIDs, country names, outcome
+// labels - so markup in them is a report-rendering injection, never intent.
+test('select control renders labels and values as text, not markup', async ({ page }) => {
+  await page.goto(ISOLATED);
+  const result = await page.evaluate(() => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    addSelectControl(host, '<img src=x onerror="window.__pwned=1">', ['<b>v</b>'], true, 'None');
+    return {
+      labelHasElement: !!host.querySelector('.gsm-widget-control--label img'),
+      optionHasElement: !!host.querySelector('option b'),
+      optionText: host.querySelectorAll('option')[1].textContent,
+    };
+  });
+  expect(result).toEqual({ labelHasElement: false, optionHasElement: false, optionText: '<b>v</b>' });
+});

@@ -198,3 +198,37 @@ test('event glue wraps a user hook sent via proxy_update_spec', async ({ page })
   });
   expect(result).toEqual({ grew: 1, hookRan: true }); // glue AND user hook both run
 });
+
+test('switching facet -> plain tears the facet renderer down', async ({ page }) => {
+  await page.goto(APP);
+  await page.click('#btnType'); // -> facet
+  await expect(page.locator('#switchChart .gsm-facet-grid')).toBeVisible();
+  await page.click('#btnType'); // -> plain
+  await expect(page.locator('#switchChart canvas')).toHaveCount(1);
+  const state = await page.evaluate(() => {
+    const el = document.getElementById('switchChart');
+    return {
+      grids: el.querySelectorAll('.gsm-facet-grid').length,
+      hasFacet: 'gsmFacet' in el && el.gsmFacet !== undefined,
+      hasChart: !!el.gsmChart,
+    };
+  });
+  expect(state).toEqual({ grids: 0, hasFacet: false, hasChart: true });
+});
+
+test('switching plain -> facet leaves no stray canvas beside the grid', async ({ page }) => {
+  await page.goto(APP);
+  await expect(page.locator('#switchChart canvas').first()).toBeVisible(); // plain first
+  await page.click('#btnType'); // -> facet
+  await expect(page.locator('#switchChart .gsm-facet-grid')).toBeVisible();
+  const state = await page.evaluate(() => {
+    const el = document.getElementById('switchChart');
+    return {
+      straysOutsideGrid: Array.from(el.children).filter(
+        (c) => c.tagName === 'CANVAS'
+      ).length,
+      hasChart: 'gsmChart' in el && el.gsmChart !== undefined,
+    };
+  });
+  expect(state).toEqual({ straysOutsideGrid: 0, hasChart: false });
+});

@@ -29,6 +29,8 @@ ui <- fluidPage(
   actionButton("btnHook", "proxy a js_hook tooltip"),
   actionButton("btnSpecSwap", "updateData with a full spec"),
   actionButton("btnSpecHook", "updateSpec with an onClick hook"),
+  barsOutput("switchChart"),
+  actionButton("btnType", "toggle bars/facet"),
   barsOutput("facetChart"),
   actionButton("btnFacet", "proxy a facet (must fail loudly)"),
   actionButton("btnBoth", "facet verb + valid verb in one flush"),
@@ -63,6 +65,15 @@ server <- function(input, output, session) {
       metadata = list(chartId = "should-be-ignored-under-shiny")
     )
   )
+  # One reactive output that swaps renderer type: the case where a stale
+  # renderer left behind by the previous render would survive.
+  output$switchChart <- renderBars({
+    if (input$btnType %% 2 == 1) {
+      facet_bars(dfF, bars_spec(x = "site", fill = "flag"), facet_spec("country"))
+    } else {
+      bars(dfA, bars_spec(x = "site", fill = "flag"))
+    }
+  })
   output$sel <- renderPrint(input$chart_select)
   observeEvent(
     input$btnSelect,

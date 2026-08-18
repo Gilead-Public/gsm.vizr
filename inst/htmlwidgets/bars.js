@@ -149,6 +149,21 @@ HTMLWidgets.widget({
         // Before any render branch: the facet path passes the same spec object
         // through to facetBars, so revival has to happen ahead of the dispatch.
         reviveHooks(input.spec, input.jsHooks);
+        // A reactive output can swap bars() <-> facet_bars() under one
+        // binding. Destroy whatever the previous render left so the new
+        // renderer starts from a clean element; without this the old
+        // grid/canvas and the stale gsmChart/gsmFacet handle survive.
+        if (el.gsmChart) {
+          el.gsmChart.destroy();
+          delete el.gsmChart;
+        }
+        if (el.gsmFacet) {
+          (el.gsmFacet.charts || []).forEach(function (c) {
+            if (c && c.destroy) c.destroy();
+          });
+          delete el.gsmFacet;
+        }
+        el.innerHTML = '';
         var meta = input.metadata || {};
         // Report pattern: a stable chartId for report-level event wiring.
         // Under Shiny the outputId is load-bearing: the proxy handler resolves

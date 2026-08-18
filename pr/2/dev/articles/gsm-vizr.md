@@ -115,15 +115,22 @@ document.addEventListener('gsm-viz-select', function (e) {
 
 Two detail shapes:
 
-| field       | click                      | select               |
-|-------------|----------------------------|----------------------|
-| `type`      | `"click"`                  | `"select"`           |
-| `chartId`   | the widget id              | the widget id        |
-| `category`  | clicked category           | —                    |
-| `fill`      | clicked segment, or `null` | —                    |
-| `datum`     | contributing row(s)        | —                    |
-| `selection` | —                          | `{type, values}`     |
-| `metadata`  | your `metadata` list       | your `metadata` list |
+| field       | click                      | select                 |
+|-------------|----------------------------|------------------------|
+| `type`      | `"click"`                  | `"select"`             |
+| `chartId`   | the widget id              | the widget id          |
+| `facet`     | facet value, or `null`     | facet value, or `null` |
+| `category`  | clicked category           | —                      |
+| `fill`      | clicked segment, or `null` | —                      |
+| `datum`     | contributing row(s)        | —                      |
+| `selection` | —                          | `{type, values}`       |
+| `metadata`  | your `metadata` list       | your `metadata` list   |
+
+`facet` carries the facet value on a
+[`facet_bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/facet_bars.md)
+chart and is `null` otherwise. User hooks supplied through `callbacks`
+receive upstream’s full argument list — `(point, event)` on a plain
+chart, `(point, facetValue, event)` on a faceted one.
 
 ### `datum` changes shape with `stat`
 

@@ -102,7 +102,7 @@ browser.</p>
 <span></span>
 <span><span class="fu"><a href="../reference/bars.html">bars</a></span><span class="op">(</span><span class="va">dfSites</span>, <span class="fu"><a href="../reference/bars_spec.html">bars_spec</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"site"</span>, fill <span class="op">=</span> <span class="st">"flag"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="bars html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:100%;height:500px;"></div>
-<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"data":[{"site":"S-001","flag":"2"},{"site":"S-001","flag":"1"},{"site":"S-001","flag":"2"},{"site":"S-001","flag":"1"},{"site":"S-001","flag":"0"},{"site":"S-002","flag":"2"},{"site":"S-002","flag":"1"},{"site":"S-002","flag":"2"},{"site":"S-003","flag":"1"},{"site":"S-003","flag":"0"}],"spec":{"mapping":{"x":"site","fill":"flag"},"orientation":"vertical","position":"stack","interactive":true},"jsHooks":[],"metadata":[],"minHeight":500,"bDebug":false},"evals":[],"jsHooks":[]}</script><p>Aesthetics nest under <code>mapping</code>; everything else is a
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"data":[{"site":"S-001","flag":"2"},{"site":"S-001","flag":"1"},{"site":"S-001","flag":"2"},{"site":"S-001","flag":"1"},{"site":"S-001","flag":"0"},{"site":"S-002","flag":"2"},{"site":"S-002","flag":"1"},{"site":"S-002","flag":"2"},{"site":"S-003","flag":"1"},{"site":"S-003","flag":"0"}],"spec":{"mapping":{"x":"site","fill":"flag"},"orientation":"vertical","position":"stack","interactive":true},"jsHooks":[],"metadata":{},"minHeight":500,"bDebug":false},"evals":[],"jsHooks":[]}</script><p>Aesthetics nest under <code>mapping</code>; everything else is a
 top-level spec key:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="fu"><a href="../reference/bars_spec.html">bars_spec</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"invid"</span>, y <span class="op">=</span> <span class="st">"n"</span>, fill <span class="op">=</span> <span class="st">"flag"</span>, stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span><span class="op">)</span></span>
@@ -130,7 +130,7 @@ ordering argument:</p>
 <span><span class="co"># scales$x$order and scales$fill$order are filled in from the levels at render.</span></span>
 <span><span class="fu"><a href="../reference/bars.html">bars</a></span><span class="op">(</span><span class="va">dfOrdered</span>, <span class="va">spec</span><span class="op">)</span></span></code></pre></div>
 <div class="bars html-widget html-fill-item" id="htmlwidget-e5c8c404fe174e4c81bd" style="width:100%;height:500px;"></div>
-<script type="application/json" data-for="htmlwidget-e5c8c404fe174e4c81bd">{"x":{"data":[{"site":"S-001","flag":"2"},{"site":"S-002","flag":"1"}],"spec":{"mapping":{"x":"site","fill":"flag"},"orientation":"vertical","position":"stack","interactive":true,"scales":{"x":{"order":["S-002","S-001"]},"fill":{"order":["2","1","0"]}}},"jsHooks":[],"metadata":[],"minHeight":500,"bDebug":false},"evals":[],"jsHooks":[]}</script><p>An order you set yourself always wins.</p>
+<script type="application/json" data-for="htmlwidget-e5c8c404fe174e4c81bd">{"x":{"data":[{"site":"S-001","flag":"2"},{"site":"S-002","flag":"1"}],"spec":{"mapping":{"x":"site","fill":"flag"},"orientation":"vertical","position":"stack","interactive":true,"scales":{"x":{"order":["S-002","S-001"]},"fill":{"order":["2","1","0"]}}},"jsHooks":[],"metadata":{},"minHeight":500,"bDebug":false},"evals":[],"jsHooks":[]}</script><p>An order you set yourself always wins.</p>
 </div>
 </div>
 <div class="section level2">
@@ -150,7 +150,7 @@ function, <code><a href="../reference/js_hook.html">js_hook()</a></code> marks i
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="bars html-widget html-fill-item" id="htmlwidget-36aa3d2a04d42bbc2145" style="width:100%;height:500px;"></div>
-<script type="application/json" data-for="htmlwidget-36aa3d2a04d42bbc2145">{"x":{"data":[{"site":"S-001","flag":"2"},{"site":"S-001","flag":"1"},{"site":"S-001","flag":"2"},{"site":"S-001","flag":"1"},{"site":"S-001","flag":"0"},{"site":"S-002","flag":"2"},{"site":"S-002","flag":"1"},{"site":"S-002","flag":"2"},{"site":"S-003","flag":"1"},{"site":"S-003","flag":"0"}],"spec":{"mapping":{"x":"site","fill":"flag"},"orientation":"vertical","position":"stack","tooltip":{"formatter":"function (value, context, details) { return 'Subjects: ' + value; }"},"interactive":true},"jsHooks":["tooltip.formatter"],"metadata":[],"minHeight":500,"bDebug":false},"evals":[],"jsHooks":[]}</script><p>Hooks are revived in the browser on an allowlist only:
+<script type="application/json" data-for="htmlwidget-36aa3d2a04d42bbc2145">{"x":{"data":[{"site":"S-001","flag":"2"},{"site":"S-001","flag":"1"},{"site":"S-001","flag":"2"},{"site":"S-001","flag":"1"},{"site":"S-001","flag":"0"},{"site":"S-002","flag":"2"},{"site":"S-002","flag":"1"},{"site":"S-002","flag":"2"},{"site":"S-003","flag":"1"},{"site":"S-003","flag":"0"}],"spec":{"mapping":{"x":"site","fill":"flag"},"orientation":"vertical","position":"stack","tooltip":{"formatter":"function (value, context, details) { return 'Subjects: ' + value; }"},"interactive":true},"jsHooks":["tooltip.formatter"],"metadata":{},"minHeight":500,"bDebug":false},"evals":[],"jsHooks":[]}</script><p>Hooks are revived in the browser on an allowlist only:
 <code>tooltip$formatter</code>, <code>callbacks$onClick</code>,
 <code>callbacks$onHover</code>, <code>callbacks$onSelect</code>, and the
 two annotation label formatters. A <code><a href="../reference/js_hook.html">js_hook()</a></code> anywhere else
@@ -185,33 +185,45 @@ wiring each chart:</p>
 <td>the widget id</td>
 </tr>
 <tr class="odd">
+<td><code>facet</code></td>
+<td>facet value, or <code>null</code>
+</td>
+<td>facet value, or <code>null</code>
+</td>
+</tr>
+<tr class="even">
 <td><code>category</code></td>
 <td>clicked category</td>
 <td>—</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>fill</code></td>
 <td>clicked segment, or <code>null</code>
 </td>
 <td>—</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>datum</code></td>
 <td>contributing row(s)</td>
 <td>—</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>selection</code></td>
 <td>—</td>
 <td><code>{type, values}</code></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>metadata</code></td>
 <td>your <code>metadata</code> list</td>
 <td>your <code>metadata</code> list</td>
 </tr>
 </tbody>
 </table>
+<p><code>facet</code> carries the facet value on a
+<code><a href="../reference/facet_bars.html">facet_bars()</a></code> chart and is <code>null</code> otherwise. User
+hooks supplied through <code>callbacks</code> receive upstream’s full
+argument list — <code>(point, event)</code> on a plain chart,
+<code>(point, facetValue, event)</code> on a faceted one.</p>
 <div class="section level3">
 <h3 id="datum-changes-shape-with-stat">
 <code>datum</code> changes shape with <code>stat</code><a class="anchor" aria-label="anchor" href="#datum-changes-shape-with-stat"></a>

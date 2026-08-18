@@ -3,11 +3,15 @@
 default so server-driven updates do not echo select events back to the
 server (no feedback loops). proxy_update_data() without a spec reuses
 the live browser-side spec (chart.data._spec_) — the R side never
-re-pushes a cached spec over toggle-mutated state."><meta property="og:description" content="Verbs map 1:1 to chart.helpers. Selection verbs pass _silent by
+re-pushes a cached spec over toggle-mutated state. A spec passed to
+proxy_update_data() must be complete (it replaces the browser spec);
+deltas belong to proxy_update_spec()."><meta property="og:description" content="Verbs map 1:1 to chart.helpers. Selection verbs pass _silent by
 default so server-driven updates do not echo select events back to the
 server (no feedback loops). proxy_update_data() without a spec reuses
 the live browser-side spec (chart.data._spec_) — the R side never
-re-pushes a cached spec over toggle-mutated state."><meta name="robots" content="noindex"></head><body>
+re-pushes a cached spec over toggle-mutated state. A spec passed to
+proxy_update_data() must be complete (it replaces the browser spec);
+deltas belong to proxy_update_spec()."><meta name="robots" content="noindex"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -52,7 +56,9 @@ re-pushes a cached spec over toggle-mutated state."><meta name="robots" content=
 default so server-driven updates do not echo select events back to the
 server (no feedback loops). <code>proxy_update_data()</code> without a spec reuses
 the live browser-side spec (<code>chart.data._spec_</code>) — the R side never
-re-pushes a cached spec over toggle-mutated state.</p>
+re-pushes a cached spec over toggle-mutated state. A spec passed to
+<code>proxy_update_data()</code> must be complete (it replaces the browser spec);
+deltas belong to <code>proxy_update_spec()</code>.</p>
     </div>
 
     <div class="section level2">

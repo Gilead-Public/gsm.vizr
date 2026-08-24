@@ -6,8 +6,10 @@ library(gsm.vizr)
 ```
 
 Every chart shape gsm.vizr covers, in the combinations report packages
-actually use. The same shapes are asserted in the package’s Playwright
-suite, so this page and the tests stay in step.
+actually use. The
+[`bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars.md)
+shapes below are asserted in the package’s Playwright suite, so that
+matrix and the tests stay in step.
 
 ``` r
 
@@ -25,7 +27,9 @@ dfFlags <- data.frame(
 )
 ```
 
-## Vertical stack (count)
+## Generic bar charts
+
+### Vertical stack (count)
 
 The default: one row per observation, gsm.viz does the counting.
 
@@ -34,7 +38,7 @@ The default: one row per observation, gsm.viz does the counting.
 bars(dfSites, bars_spec(x = "site", fill = "flag"))
 ```
 
-## Horizontal stack, pre-aggregated, named colours, captions
+### Horizontal stack, pre-aggregated, named colours, captions
 
 ``` r
 
@@ -46,14 +50,14 @@ bars(dfFlags, bars_spec(
 ))
 ```
 
-## Position: dodge
+### Position: dodge
 
 ``` r
 
 bars(dfSites, bars_spec(x = "site", fill = "flag", position = "dodge"))
 ```
 
-## 100% normalized
+### 100% normalized
 
 `position = "fill"` and `stat = "percent"` produce the same chart —
 gsm.viz normalizes the former into the latter.
@@ -63,7 +67,7 @@ gsm.viz normalizes the former into the latter.
 bars(dfSites, bars_spec(x = "site", fill = "flag", position = "fill"))
 ```
 
-## Single series, frequency sort, and Top-N
+### Single series, frequency sort, and Top-N
 
 ``` r
 
@@ -83,7 +87,7 @@ bars(dfCounts, bars_spec(
 bars(dfCounts, bars_spec(x = "site", y = "n", stat = "identity", nCategories = 3))
 ```
 
-## Labels, tooltips, reference lines
+### Labels, tooltips, reference lines
 
 ``` r
 
@@ -106,7 +110,7 @@ bars(dfCounts, bars_spec(
 ))
 ```
 
-## Zoom, dense legend, multi-select
+### Zoom, dense legend, multi-select
 
 ``` r
 
@@ -124,7 +128,7 @@ bars(dfSites, bars_spec(
 ))
 ```
 
-## Facet small multiples
+### Facet small multiples
 
 ``` r
 
@@ -138,11 +142,11 @@ facet_bars(dfFacet, bars_spec(x = "site", fill = "flag"),
 )
 ```
 
-## Downstream replicas
+### Downstream replicas
 
 The shapes the migrating report packages actually render.
 
-### Participant-level counts, normalized, with footnotes
+#### Participant-level counts, normalized, with footnotes
 
 ``` r
 
@@ -165,7 +169,7 @@ bars(dfSubj, bars_spec(
 ))
 ```
 
-### Pre-aggregated eligibility stack, with titles
+#### Pre-aggregated eligibility stack, with titles
 
 The dominant real shape: already summarized, horizontal, plain stack,
 with a chart title and both axis titles.
@@ -199,7 +203,7 @@ bars(dfElig, bars_spec(
 ))
 ```
 
-### Endpoint status with a two-line tooltip
+#### Endpoint status with a two-line tooltip
 
 ``` r
 
@@ -224,7 +228,7 @@ bars(dfPfs, bars_spec(
 ))
 ```
 
-## Sizing at report scale
+### Sizing at report scale
 
 24 investigators, growing at 25px each above the 500px floor — the
 sizing curve a report package would otherwise compute itself.
@@ -244,7 +248,7 @@ bars(dfMany, bars_spec(
 ))
 ```
 
-## Empty data
+### Empty data
 
 Renders without error, though without a placeholder message.
 
@@ -253,5 +257,94 @@ Renders without error, though without a placeholder message.
 bars(
   data.frame(site = character(), flag = character()),
   bars_spec(x = "site", fill = "flag")
+)
+```
+
+## Legacy KRI widgets
+
+Relocated from gsm.kri, these wrappers drive gsm.viz’s earlier KRI
+renderers — `barChart`, `scatterPlot`, `timeSeries`, `groupOverview` —
+from the same vendored bundle the charts above use. They take the gsm
+reporting data frames directly rather than a
+[`bars_spec()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars_spec.md),
+and build their configuration internally through
+[`MakeChartConfig()`](https://gilead-public.github.io/gsm.vizr/dev/reference/MakeChartConfig.md).
+They exist so KRI reports keep working across the move; new charts
+should reach for
+[`bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars.md).
+
+``` r
+
+dfKri <- gsm.core::reportingResults %>%
+  dplyr::filter(MetricID == "Analysis_kri0001")
+dfKriLatest <- dfKri %>% dplyr::filter(SnapshotDate == max(SnapshotDate))
+lKriMetric <- gsm.core::reportingMetrics %>%
+  dplyr::filter(MetricID == "Analysis_kri0001") %>%
+  as.list()
+dfKriBounds <- gsm.core::reportingBounds %>%
+  dplyr::filter(
+    MetricID == "Analysis_kri0001" & SnapshotDate == max(SnapshotDate)
+  )
+```
+
+### Bar chart
+
+Group-level results for one metric at the latest snapshot, with the
+outcome dropdown and site highlight control.
+
+``` r
+
+Widget_BarChart(
+  dfResults = dfKriLatest,
+  dfGroups = gsm.core::reportingGroups,
+  lMetric = lKriMetric,
+  vThreshold = lKriMetric$Threshold
+)
+```
+
+### Scatter plot
+
+Denominator against numerator, with the metric’s bounds behind the
+points.
+
+``` r
+
+Widget_ScatterPlot(
+  dfResults = dfKriLatest,
+  dfGroups = gsm.core::reportingGroups,
+  lMetric = lKriMetric,
+  dfBounds = dfKriBounds
+)
+```
+
+### Time series
+
+The same metric across every snapshot rather than only the latest.
+
+``` r
+
+Widget_TimeSeries(
+  dfResults = dfKri,
+  dfGroups = gsm.core::reportingGroups,
+  lMetric = lKriMetric,
+  vThreshold = lKriMetric$Threshold
+)
+```
+
+### Group overview
+
+A table rather than a chart, and the one widget that spans every metric
+at once. The default subset keeps the groups carrying at least one red
+flag.
+
+``` r
+
+Widget_GroupOverview(
+  dfResults = dplyr::filter(
+    gsm.core::reportingResults,
+    SnapshotDate == max(SnapshotDate)
+  ),
+  dfMetrics = gsm.core::reportingMetrics,
+  dfGroups = gsm.core::reportingGroups
 )
 ```

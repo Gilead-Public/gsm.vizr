@@ -7,18 +7,41 @@ Initial release: htmlwidgets wrapper for the gsm.viz 2.4.1
 
 - [`bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars.md)/[`facet_bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/facet_bars.md)
   widgets over one vendored bundle.
+
 - [`bars_spec()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars_spec.md)/[`facet_spec()`](https://gilead-public.github.io/gsm.vizr/dev/reference/facet_spec.md)
   validation mirroring gsm.viz `validateSpec.js`; factor levels derive
   category/stack order automatically.
+
 - [`js_hook()`](https://gilead-public.github.io/gsm.vizr/dev/reference/js_hook.md)
   for function-valued slots, revived on an allowlist only.
+
 - `gsm-viz-select` event contract with Shiny input mirroring.
+
 - [`barsOutput()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars-shiny.md)/[`renderBars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars-shiny.md)/[`bars_proxy()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars_proxy.md)
   verbs (silent by default).
+
 - [`html_dependency_gsm_viz()`](https://gilead-public.github.io/gsm.vizr/dev/reference/html_dependency_gsm_viz.md)
   for other packages’ custom widgets.
 
+- Relocated the legacy KRI widget wrappers from gsm.kri
+  ([\#4](https://github.com/Gilead-Public/gsm.vizr/issues/4)):
+  `Widget_BarChart`, `Widget_ScatterPlot`, `Widget_TimeSeries`,
+  `Widget_GroupOverview`, their Shiny bindings,
+  [`MakeChartConfig()`](https://gilead-public.github.io/gsm.vizr/dev/reference/MakeChartConfig.md),
+  and the shared widget-control JS/CSS. gsm.vizr now hosts both the
+  generic `bars` family and the legacy renderers’ wrappers, and takes
+  gsm.core (plus dplyr, fontawesome, lifecycle, magrittr, purrr, rlang,
+  tidyr) in Imports.
+
 ### Things to know
+
+The vendored bundle is the gsm.viz 2.4.1 tag plus one patch carried over
+from gsm.kri#285, which points `SiteRiskScoreURL` at
+`gilead-public.github.io` instead of the pre-rename
+`gilead-biostats.github.io`. It is therefore not a clean build of the
+tag: a bundle bump must either re-apply the substitution or land on an
+upstream gsm.viz release that already carries it, otherwise the
+SiteRiskScore help link in KRI reports silently regresses.
 
 `datum` in a `gsm-viz-select` detail follows the chart’s `stat`: the
 single contributing row under `"identity"`, the array of aggregated rows

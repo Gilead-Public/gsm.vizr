@@ -102,6 +102,31 @@ moves together.
 - [`html_dependency_gsm_viz()`](https://gilead-public.github.io/gsm.vizr/dev/reference/html_dependency_gsm_viz.md)
   : HTML dependency for the vendored gsm.viz bundle
 
+## Legacy KRI widgets (relocated from gsm.kri)
+
+- [`Widget_BarChartOutput()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_BarChart-shiny.md)
+  [`renderWidget_BarChart()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_BarChart-shiny.md)
+  **\[stable\]** : Shiny bindings for Widget_BarChart
+- [`Widget_BarChart()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_BarChart.md)
+  **\[stable\]** : Bar Chart Widget
+- [`Widget_GroupOverviewOutput()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_GroupOverview-shiny.md)
+  [`renderWidget_GroupOverview()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_GroupOverview-shiny.md)
+  **\[stable\]** : Shiny bindings for Widget_GroupOverview
+- [`Widget_GroupOverview()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_GroupOverview.md)
+  **\[stable\]** : Group Overview Widget
+- [`Widget_ScatterPlotOutput()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_ScatterPlot-shiny.md)
+  [`renderWidget_ScatterPlot()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_ScatterPlot-shiny.md)
+  **\[stable\]** : Shiny bindings for Widget_ScatterPlot
+- [`Widget_ScatterPlot()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_ScatterPlot.md)
+  **\[stable\]** : Scatter Plot Widget
+- [`Widget_TimeSeriesOutput()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_TimeSeries-shiny.md)
+  [`renderWidget_TimeSeries()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_TimeSeries-shiny.md)
+  **\[stable\]** : Shiny bindings for Widget_TimeSeries
+- [`Widget_TimeSeries()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_TimeSeries.md)
+  **\[stable\]** : Time Series Widget
+- [`MakeChartConfig()`](https://gilead-public.github.io/gsm.vizr/dev/reference/MakeChartConfig.md)
+  : Make Chart Config
+
 # Articles
 
 ### Articles

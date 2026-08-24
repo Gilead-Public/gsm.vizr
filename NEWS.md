@@ -11,7 +11,20 @@ renderers.
 * `barsOutput()`/`renderBars()`/`bars_proxy()` verbs (silent by default).
 * `html_dependency_gsm_viz()` for other packages' custom widgets.
 
+- Relocated the legacy KRI widget wrappers from gsm.kri (#4): `Widget_BarChart`,
+  `Widget_ScatterPlot`, `Widget_TimeSeries`, `Widget_GroupOverview`, their Shiny bindings,
+  `MakeChartConfig()`, and the shared widget-control JS/CSS. gsm.vizr now hosts both the
+  generic `bars` family and the legacy renderers' wrappers, and takes gsm.core (plus dplyr,
+  fontawesome, lifecycle, magrittr, purrr, rlang, tidyr) in Imports.
+
 ## Things to know
+
+The vendored bundle is the gsm.viz 2.4.1 tag plus one patch carried over from
+gsm.kri#285, which points `SiteRiskScoreURL` at `gilead-public.github.io` instead
+of the pre-rename `gilead-biostats.github.io`. It is therefore not a clean build
+of the tag: a bundle bump must either re-apply the substitution or land on an
+upstream gsm.viz release that already carries it, otherwise the SiteRiskScore
+help link in KRI reports silently regresses.
 
 `datum` in a `gsm-viz-select` detail follows the chart's `stat`: the single
 contributing row under `"identity"`, the array of aggregated rows under

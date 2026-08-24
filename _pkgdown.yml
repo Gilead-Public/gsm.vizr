@@ -10,6 +10,8 @@ reference:
     contents: [bars-shiny, bars_proxy, starts_with("proxy_")]
   - title: Shared runtime
     contents: [html_dependency_gsm_viz]
+  - title: Legacy KRI widgets (relocated from gsm.kri)
+    contents: [starts_with("Widget_"), MakeChartConfig]
 articles:
   - title: Articles
     navbar: ~

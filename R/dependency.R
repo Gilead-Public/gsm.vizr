@@ -1,8 +1,7 @@
 #' HTML dependency for the vendored gsm.viz bundle
 #'
-#' For other packages' custom widgets (e.g. the gsm.kri premature-death
-#' widgets): declare this dependency instead of vendoring the bundle again.
-#' Loading it defines `window.gsmViz`.
+#' For custom widgets built outside this package: declare this dependency
+#' instead of vendoring the bundle again. Loading it defines `window.gsmViz`.
 #' @return An [htmltools::htmlDependency()].
 #' @export
 html_dependency_gsm_viz <- function() {

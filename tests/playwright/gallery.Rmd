@@ -473,3 +473,23 @@ bars(dfMany,
 )
 ```
 </div>
+
+## Legacy KRI bar chart (relocated wrapper)
+
+<div id="page-legacy-barchart">
+```{r legacy-barchart}
+# Renders through the relocated Widget_BarChart: binding, YAML, control libs and
+# the gsmViz bundle must all resolve from gsm.vizr (not gsm.kri).
+dfResults_legacy <- gsm.core::reportingResults %>%
+  dplyr::filter(MetricID == "Analysis_kri0001" & SnapshotDate == max(SnapshotDate))
+lMetric_legacy <- gsm.core::reportingMetrics %>%
+  dplyr::filter(MetricID == "Analysis_kri0001") %>%
+  as.list()
+Widget_BarChart(
+  dfResults = dfResults_legacy,
+  dfGroups = gsm.core::reportingGroups,
+  lMetric = lMetric_legacy,
+  vThreshold = lMetric_legacy$Threshold
+)
+```
+</div>

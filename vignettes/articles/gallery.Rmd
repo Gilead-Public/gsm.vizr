@@ -18,8 +18,8 @@ library(gsm.vizr)
 ```
 
 Every chart shape gsm.vizr covers, in the combinations report packages actually
-use. The same shapes are asserted in the package's Playwright suite, so this
-page and the tests stay in step.
+use. The `bars()` shapes below are asserted in the package's Playwright suite,
+so that matrix and the tests stay in step.
 
 ```{r data}
 dfSites <- data.frame(
@@ -35,6 +35,8 @@ dfFlags <- data.frame(
   n = c(5, 2, 4, 1, 2, 2)
 )
 ```
+
+# Generic bar charts
 
 ## Vertical stack (count)
 
@@ -247,5 +249,83 @@ Renders without error, though without a placeholder message.
 bars(
   data.frame(site = character(), flag = character()),
   bars_spec(x = "site", fill = "flag")
+)
+```
+
+# Legacy KRI widgets
+
+Relocated from gsm.kri, these wrappers drive gsm.viz's earlier KRI renderers —
+`barChart`, `scatterPlot`, `timeSeries`, `groupOverview` — from the same
+vendored bundle the charts above use. They take the gsm reporting data frames
+directly rather than a `bars_spec()`, and build their configuration internally
+through `MakeChartConfig()`. They exist so KRI reports keep working across the
+move; new charts should reach for `bars()`.
+
+```{r kri-data}
+dfKri <- gsm.core::reportingResults %>%
+  dplyr::filter(MetricID == "Analysis_kri0001")
+dfKriLatest <- dfKri %>% dplyr::filter(SnapshotDate == max(SnapshotDate))
+lKriMetric <- gsm.core::reportingMetrics %>%
+  dplyr::filter(MetricID == "Analysis_kri0001") %>%
+  as.list()
+dfKriBounds <- gsm.core::reportingBounds %>%
+  dplyr::filter(
+    MetricID == "Analysis_kri0001" & SnapshotDate == max(SnapshotDate)
+  )
+```
+
+## Bar chart
+
+Group-level results for one metric at the latest snapshot, with the outcome
+dropdown and site highlight control.
+
+```{r widget-barchart}
+Widget_BarChart(
+  dfResults = dfKriLatest,
+  dfGroups = gsm.core::reportingGroups,
+  lMetric = lKriMetric,
+  vThreshold = lKriMetric$Threshold
+)
+```
+
+## Scatter plot
+
+Denominator against numerator, with the metric's bounds behind the points.
+
+```{r widget-scatterplot}
+Widget_ScatterPlot(
+  dfResults = dfKriLatest,
+  dfGroups = gsm.core::reportingGroups,
+  lMetric = lKriMetric,
+  dfBounds = dfKriBounds
+)
+```
+
+## Time series
+
+The same metric across every snapshot rather than only the latest.
+
+```{r widget-timeseries}
+Widget_TimeSeries(
+  dfResults = dfKri,
+  dfGroups = gsm.core::reportingGroups,
+  lMetric = lKriMetric,
+  vThreshold = lKriMetric$Threshold
+)
+```
+
+## Group overview
+
+A table rather than a chart, and the one widget that spans every metric at once.
+The default subset keeps the groups carrying at least one red flag.
+
+```{r widget-groupoverview}
+Widget_GroupOverview(
+  dfResults = dplyr::filter(
+    gsm.core::reportingResults,
+    SnapshotDate == max(SnapshotDate)
+  ),
+  dfMetrics = gsm.core::reportingMetrics,
+  dfGroups = gsm.core::reportingGroups
 )
 ```

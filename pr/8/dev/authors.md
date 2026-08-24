@@ -1,0 +1,25 @@
+# Authors and Citation
+
+## Authors
+
+- **Michal Kaminski**. Author, maintainer.
+  [](https://orcid.org/0000-0003-0850-9939)
+
+- **Gilead Sciences**. Copyright holder, funder.
+
+## Citation
+
+Source:
+[`DESCRIPTION`](https://github.com/Gilead-Public/gsm.vizr/blob/release-0.1.0/DESCRIPTION)
+
+Kaminski M (2026). *gsm.vizr: R Wrappers for the gsm.viz Generic and KRI
+Chart Renderers*. R package version 0.1.0,
+<https://github.com/Gilead-Public/gsm.vizr>.
+
+    @Manual{,
+      title = {gsm.vizr: R Wrappers for the gsm.viz Generic and KRI Chart Renderers},
+      author = {Michal Kaminski},
+      year = {2026},
+      note = {R package version 0.1.0},
+      url = {https://github.com/Gilead-Public/gsm.vizr},
+    }

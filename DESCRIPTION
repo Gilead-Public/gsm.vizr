@@ -1,8 +1,9 @@
 Package: gsm.vizr
 Title: R Wrapper for the gsm.viz Bar Chart Renderers
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: c(
-    person("michkam89", , , "tidy.code.mk@gmail.com", role = c("aut", "cre")),
+    person("Michal", "Kaminski", , "michkam89@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-0850-9939")),
     person("Gilead Sciences", role = c("cph", "fnd"))
   )
 Description: An htmlwidgets interface to the gsm.viz JavaScript library
@@ -26,3 +27,6 @@ Imports:
     htmltools,
     htmlwidgets,
     jsonlite
+VignetteBuilder: knitr
+URL: https://github.com/Gilead-Public/gsm.vizr, https://gilead-public.github.io/gsm.vizr/
+BugReports: https://github.com/Gilead-Public/gsm.vizr/issues

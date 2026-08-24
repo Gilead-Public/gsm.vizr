@@ -1,7 +1,7 @@
 # gsm.vizr 0.1.0
 
-Initial release: htmlwidgets wrapper for the gsm.viz 2.4.1 `bars`/`facetBars`
-renderers.
+Initial release: an htmlwidgets interface to the gsm.viz JavaScript library,
+hosting both of its chart generations against one vendored gsm.viz 2.4.1 bundle.
 
 * `bars()`/`facet_bars()` widgets over one vendored bundle.
 * `bars_spec()`/`facet_spec()` validation mirroring gsm.viz `validateSpec.js`;
@@ -10,12 +10,11 @@ renderers.
 * `gsm-viz-select` event contract with Shiny input mirroring.
 * `barsOutput()`/`renderBars()`/`bars_proxy()` verbs (silent by default).
 * `html_dependency_gsm_viz()` for other packages' custom widgets.
-
-- Relocated the legacy KRI widget wrappers from gsm.kri (#4): `Widget_BarChart`,
-  `Widget_ScatterPlot`, `Widget_TimeSeries`, `Widget_GroupOverview`, their Shiny bindings,
-  `MakeChartConfig()`, and the shared widget-control JS/CSS. gsm.vizr now hosts both the
-  generic `bars` family and the legacy renderers' wrappers, and takes gsm.core (plus dplyr,
-  fontawesome, lifecycle, magrittr, purrr, rlang, tidyr) in Imports.
+* Relocated the legacy KRI widget wrappers from gsm.kri (#4): `Widget_BarChart`,
+  `Widget_ScatterPlot`, `Widget_TimeSeries`, `Widget_GroupOverview`, their Shiny
+  bindings, `MakeChartConfig()`, and the shared widget-control JS/CSS.
+* Takes gsm.core (>= 1.3.1) in Imports, alongside dplyr, fontawesome, lifecycle,
+  magrittr, purrr, rlang, and tidyr.
 
 ## Things to know
 

@@ -96,10 +96,18 @@ bars(
 
 Hooks are revived in the browser on an allowlist only:
 `tooltip$formatter`, `callbacks$onClick`, `callbacks$onHover`,
-`callbacks$onSelect`, and the two annotation label formatters. A
+`callbacks$onSelect`, the two annotation label formatters, and
+`scales$x$order`. A
 [`js_hook()`](https://gilead-public.github.io/gsm.vizr/dev/reference/js_hook.md)
 anywhere else is an R error naming where it was found, rather than a
 string quietly serialized where a function was expected.
+
+`scales$x$order` is the one hook that only
+[`facet_bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/facet_bars.md)
+can use: facetBars calls it per facet as `order(facetValue, facetData)`,
+while plain
+[`bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars.md)
+expects an array there.
 
 ## The event contract
 

@@ -152,10 +152,15 @@ function, <code><a href="../reference/js_hook.html">js_hook()</a></code> marks i
 <div class="bars html-widget html-fill-item" id="htmlwidget-36aa3d2a04d42bbc2145" style="width:100%;height:500px;"></div>
 <script type="application/json" data-for="htmlwidget-36aa3d2a04d42bbc2145">{"x":{"data":[{"site":"S-001","flag":"2"},{"site":"S-001","flag":"1"},{"site":"S-001","flag":"2"},{"site":"S-001","flag":"1"},{"site":"S-001","flag":"0"},{"site":"S-002","flag":"2"},{"site":"S-002","flag":"1"},{"site":"S-002","flag":"2"},{"site":"S-003","flag":"1"},{"site":"S-003","flag":"0"}],"spec":{"mapping":{"x":"site","fill":"flag"},"orientation":"vertical","position":"stack","tooltip":{"formatter":"function (value, context, details) { return 'Subjects: ' + value; }"},"interactive":true},"jsHooks":["tooltip.formatter"],"metadata":{},"minHeight":500,"bDebug":false},"evals":[],"jsHooks":[]}</script><p>Hooks are revived in the browser on an allowlist only:
 <code>tooltip$formatter</code>, <code>callbacks$onClick</code>,
-<code>callbacks$onHover</code>, <code>callbacks$onSelect</code>, and the
-two annotation label formatters. A <code><a href="../reference/js_hook.html">js_hook()</a></code> anywhere else
-is an R error naming where it was found, rather than a string quietly
-serialized where a function was expected.</p>
+<code>callbacks$onHover</code>, <code>callbacks$onSelect</code>, the two
+annotation label formatters, and <code>scales$x$order</code>. A
+<code><a href="../reference/js_hook.html">js_hook()</a></code> anywhere else is an R error naming where it was
+found, rather than a string quietly serialized where a function was
+expected.</p>
+<p><code>scales$x$order</code> is the one hook that only
+<code><a href="../reference/facet_bars.html">facet_bars()</a></code> can use: facetBars calls it per facet as
+<code>order(facetValue, facetData)</code>, while plain
+<code><a href="../reference/bars.html">bars()</a></code> expects an array there.</p>
 </div>
 <div class="section level2">
 <h2 id="the-event-contract">The event contract<a class="anchor" aria-label="anchor" href="#the-event-contract"></a>

@@ -15,7 +15,14 @@ A \code{JS_EVAL} string, as returned by \code{\link[htmlwidgets:JS]{htmlwidgets:
 \description{
 Alias for \code{\link[htmlwidgets:JS]{htmlwidgets::JS()}}. Only the function-valued gsm.viz slots are
 revived in the browser: \code{tooltip$formatter}, \code{callbacks$onClick},
-\code{callbacks$onHover}, \code{callbacks$onSelect}, and the two annotation label
-formatters. Anywhere else, \code{\link[=bars]{bars()}} errors. Prefer the JSON-safe
-alternatives (\code{tooltip$format}, label \code{format} strings) where they suffice.
+\code{callbacks$onHover}, \code{callbacks$onSelect}, the two annotation label
+formatters, and \code{scales$x$order}. Anywhere else, \code{\link[=bars]{bars()}} errors. Prefer the
+JSON-safe alternatives (\code{tooltip$format}, label \code{format} strings) where they
+suffice.
+}
+\details{
+A function-valued \code{scales$x$order} is a \code{\link[=facet_bars]{facet_bars()}} feature: facetBars
+calls it once per facet as \code{order(facetValue, facetData)} to order that
+facet's categories. Plain \code{\link[=bars]{bars()}} hands the slot to gsm.viz, which expects
+an array there and has no function branch.
 }

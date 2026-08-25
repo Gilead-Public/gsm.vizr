@@ -167,6 +167,20 @@ test_that("annotation label formatters accept a string or a js_hook()", {
   expect_silent(fmt(htmlwidgets::JS("function (v) { return v; }")))
 })
 
+test_that("an NA annotation label formatter is rejected in R {#1}", {
+  # NA is a character in R but serializes to JSON null, which upstream rejects
+  # because typeof null is "object" -- so without this it fails in the browser.
+  expect_error(
+    bars_spec(
+      x = "a",
+      annotations = list(
+        labels = list(segment = list(formatter = NA_character_))
+      )
+    ),
+    "spec.annotations.labels.segment.formatter must be a string or function"
+  )
+})
+
 test_that("partial validation skips the required-mapping checks", {
   # proxy_update_spec() sends deltas: a spec fragment need not carry mapping.
   expect_error(
@@ -239,9 +253,17 @@ test_that("captions accept a character vector (regulatory footnotes)", {
 
 test_that("bars_spec() rejects empty and NA x in R, not the browser {#1}", {
   expect_error(bars_spec(x = ""), "spec.mapping.x is required", fixed = TRUE)
-  expect_error(bars_spec(x = NA_character_), "spec.mapping.x is required", fixed = TRUE)
+  expect_error(
+    bars_spec(x = NA_character_),
+    "spec.mapping.x is required",
+    fixed = TRUE
+  )
 })
 
 test_that("facet_spec() rejects an NA field {#1}", {
-  expect_error(facet_spec(NA_character_), "spec.facet.field is required", fixed = TRUE)
+  expect_error(
+    facet_spec(NA_character_),
+    "spec.facet.field is required",
+    fixed = TRUE
+  )
 })

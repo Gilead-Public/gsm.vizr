@@ -72,6 +72,27 @@ facet_bars(dfFacet, bars_spec(x = "site", fill = "flag"),
 ```
 </div>
 
+## Facet x-order hook
+
+<div id="page-facet-order-hook">
+```{r facet-order-hook}
+# scales$x$order is the one js_hook slot bars() cannot use: facetBars calls it
+# per facet as order(facetValue, facetData). The default category order is
+# alphanumeric, so returning the reverse makes a revived-and-called function
+# distinguishable from a body left serialized as a string and ignored.
+facet_bars(dfFacet,
+  bars_spec(
+    x = "site", fill = "flag",
+    scales = list(
+      x = list(order = js_hook("function (f, d) { return ['S-002', 'S-001']; }"))
+    )
+  ),
+  facet_spec("country", order = c("USA", "CAN"), nCol = 2),
+  metadata = list(chartId = "chart-facet-order-hook")
+)
+```
+</div>
+
 ## js_hook tooltip formatter
 
 <div id="page-hooks">

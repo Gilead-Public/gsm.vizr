@@ -38,6 +38,7 @@ const EXPECTED_CHARTS = [
   'chart-qtl-identity',
   'chart-outside-labels',
   'chart-dynamic-many',
+  'chart-facet-order-hook',
 ];
 
 // Structural fingerprint per chart: category labels, dataset shapes, axis

@@ -1,8 +1,32 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
-<url><loc>/404.html</loc></url>
-<url><loc>/LICENSE.html</loc></url>
-<url><loc>/authors.html</loc></url>
-<url><loc>/index.html</loc></url>
-<url><loc>/reference/index.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/404.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/LICENSE.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/articles/gallery.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/articles/gsm-vizr.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/articles/index.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/authors.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/index.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/news/index.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/MakeChartConfig.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/Widget_BarChart-shiny.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/Widget_BarChart.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/Widget_GroupOverview-shiny.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/Widget_GroupOverview.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/Widget_ScatterPlot-shiny.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/Widget_ScatterPlot.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/Widget_TimeSeries-shiny.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/Widget_TimeSeries.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/bars-shiny.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/bars.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/bars_proxy.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/bars_spec.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/facet_bars.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/facet_spec.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/gsm.vizr-package.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/html_dependency_gsm_viz.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/index.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/js_hook.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/pipe.html</loc></url>
+<url><loc>https://gilead-public.github.io/gsm.vizr/reference/shared-params.html</loc></url>
 </urlset>
 

@@ -1,28 +1,46 @@
 Package: gsm.vizr
-Title: R Wrapper for the gsm.viz Bar Chart Renderers
-Version: 0.0.0.9000
+Title: R Wrappers for the gsm.viz Generic and KRI Chart Renderers
+Version: 0.1.0
 Authors@R: c(
-    person("michkam89", , , "tidy.code.mk@gmail.com", role = c("aut", "cre")),
+    person("Michal", "Kaminski", , "michkam89@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0003-0850-9939")),
     person("Gilead Sciences", role = c("cph", "fnd"))
   )
-Description: An htmlwidgets interface to the gsm.viz JavaScript library
-    generic bars and facetBars renderers. Provides spec construction and
-    validation, a stable R-to-JavaScript serialization contract, click and
-    selection events, Shiny bindings with proxy update verbs, and a shared
-    HTML dependency for other packages custom widgets.
+Description: An htmlwidgets interface to the gsm.viz JavaScript library,
+    hosting both of its chart generations. For the generic bars and facetBars
+    renderers it provides spec construction and validation, a stable
+    R-to-JavaScript serialization contract, click and selection events, Shiny
+    bindings with proxy update verbs, and a shared HTML dependency for other
+    packages custom widgets. It also hosts the legacy Key Risk Indicator
+    widget wrappers, their Shiny bindings, and the widget controls they share.
 License: Apache License (>= 2)
 Encoding: UTF-8
+Language: en-US
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 8.0.0
 Suggests: 
     knitr,
     rmarkdown,
     shiny,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    withr
 Config/testthat/edition: 3
 Depends: 
-    R (>= 4.0)
+    R (>= 4.1)
 Imports: 
+    dplyr,
+    fontawesome,
+    gsm.core (>= 1.3.1),
     htmltools,
     htmlwidgets,
-    jsonlite
+    jsonlite,
+    lifecycle,
+    magrittr,
+    purrr,
+    rlang,
+    tidyr
+Remotes: 
+    gsm.core=Gilead-Public/gsm.core@main
+VignetteBuilder: knitr
+URL: https://github.com/Gilead-Public/gsm.vizr, https://gilead-public.github.io/gsm.vizr/
+BugReports: https://github.com/Gilead-Public/gsm.vizr/issues

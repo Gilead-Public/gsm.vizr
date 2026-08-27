@@ -1,0 +1,19 @@
+url: https://gilead-public.github.io/gsm.vizr/
+template:
+  bootstrap: 5
+reference:
+  - title: Widgets
+    contents: [bars, facet_bars]
+  - title: Spec construction
+    contents: [bars_spec, facet_spec, js_hook]
+  - title: Shiny
+    contents: [bars-shiny, bars_proxy, starts_with("proxy_")]
+  - title: Shared runtime
+    contents: [html_dependency_gsm_viz]
+  - title: Legacy KRI widgets (relocated from gsm.kri)
+    contents: [starts_with("Widget_"), MakeChartConfig]
+articles:
+  - title: Articles
+    navbar: ~
+    # vignettes/articles/ entries are addressed by path, not basename.
+    contents: [gsm-vizr, articles/gallery]

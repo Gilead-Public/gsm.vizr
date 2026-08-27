@@ -1,0 +1,59 @@
+---
+title: "gsm.vizr relocated legacy widget"
+output:
+  html_document:
+    self_contained: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(gsm.vizr)
+```
+
+<!--
+Deliberately a separate fixture from gallery.Rmd, holding a single relocated
+widget and no bars() chart. htmltools de-duplicates HTML dependencies by
+name+version, so on a page that also carries a bars() chart the gsmViz entry
+declared by bars.yaml wins and whatever Widget_BarChart.yaml declares is never
+exercised. Isolating the widget is what makes this page a real guard on the
+relocated YAML - and it is also the shape of a downstream report page that hosts
+a legacy widget alone.
+-->
+
+## Legacy KRI bar chart (relocated wrapper, no bars() chart on the page)
+
+<div id="page-legacy-barchart">
+```{r legacy-barchart}
+dfResults_legacy <- gsm.core::reportingResults %>%
+  dplyr::filter(MetricID == "Analysis_kri0001" & SnapshotDate == max(SnapshotDate))
+lMetric_legacy <- gsm.core::reportingMetrics %>%
+  dplyr::filter(MetricID == "Analysis_kri0001") %>%
+  as.list()
+Widget_BarChart(
+  dfResults = dfResults_legacy,
+  dfGroups = gsm.core::reportingGroups,
+  lMetric = lMetric_legacy,
+  vThreshold = lMetric_legacy$Threshold
+)
+```
+</div>
+
+## Legacy KRI bar chart with controls suppressed
+
+<!--
+`bAddGroupSelect = FALSE` makes `addWidgetControls()` return a null container,
+which the outcome dropdown must not be handed. Rendering the chart at all is the
+assertion; the binding throws before the canvas appears when the guard is gone.
+-->
+
+<div id="page-legacy-barchart-nocontrols">
+```{r legacy-barchart-nocontrols}
+Widget_BarChart(
+  dfResults = dfResults_legacy,
+  dfGroups = gsm.core::reportingGroups,
+  lMetric = lMetric_legacy,
+  vThreshold = lMetric_legacy$Threshold,
+  bAddGroupSelect = FALSE
+)
+```
+</div>

@@ -1,1 +1,15 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.git$
+^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
 ^LICENSE\.md$
+^[.]?air[.]toml$
+^\.vscode$
+^\.claude$
+^AGENTS\.md$
+^tests/playwright$
+^tests/testthat/_problems$
+^vignettes/articles$

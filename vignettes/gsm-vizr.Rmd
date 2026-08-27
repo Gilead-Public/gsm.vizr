@@ -1,0 +1,228 @@
+---
+title: "Getting started with gsm.vizr"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with gsm.vizr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+```{r setup}
+library(gsm.vizr)
+```
+
+## What this package owns
+
+Three layers, with one owner each. **gsm.viz** is the JavaScript library: it
+decides how a bar chart looks and behaves, and its documentation is the source
+of truth for every spec key. **gsm.vizr** is this package: it vendors one copy
+of the gsm.viz bundle, owns the R-to-JavaScript serialization contract, and
+ships the Shiny, event and proxy plumbing. **Report packages** — gsm.qtl,
+gsm.kri, gsm.endpoints and the rest — build data frames and specs and hand them
+here.
+
+The wrapper is deliberately thin. R lists map 1:1 onto the JS spec, so there is
+no second vocabulary to learn and no translation layer to fall behind upstream.
+
+## A first chart
+
+`bars()` takes a data frame and a spec. `bars_spec()` builds the spec and
+validates it in R, mirroring gsm.viz's own `validateSpec.js` — so a malformed
+spec fails here, with the same message, instead of silently in a browser.
+
+```{r basic}
+dfSites <- data.frame(
+  site = rep(c("S-001", "S-002", "S-003"), times = c(5, 3, 2)),
+  flag = rep(c("2", "1", "2", "1", "0"), times = 2)
+)
+
+bars(dfSites, bars_spec(x = "site", fill = "flag"))
+```
+
+Aesthetics nest under `mapping`; everything else is a top-level spec key:
+
+```{r spec-shape}
+str(bars_spec(x = "invid", y = "n", fill = "flag", stat = "identity"))
+```
+
+### Factors carry order
+
+Category and stack order come from factor levels automatically, so `forcats`
+verbs travel to the browser without a second ordering argument:
+
+```{r factors}
+dfOrdered <- data.frame(
+  site = factor(c("S-001", "S-002"), levels = c("S-002", "S-001")),
+  flag = factor(c("2", "1"), levels = c("2", "1", "0"))
+)
+spec <- bars_spec(x = "site", fill = "flag")
+# scales$x$order and scales$fill$order are filled in from the levels at render.
+bars(dfOrdered, spec)
+```
+
+An order you set yourself always wins.
+
+## Escaping to JavaScript
+
+Prefer the JSON-safe options — `tooltip$format`, label format strings — where
+they suffice. When a slot genuinely needs a function, `js_hook()` marks it:
+
+```{r hook}
+bars(
+  dfSites,
+  bars_spec(
+    x = "site", fill = "flag",
+    tooltip = list(formatter = js_hook(
+      "function (value, context, details) { return 'Subjects: ' + value; }"
+    ))
+  )
+)
+```
+
+Hooks are revived in the browser on an allowlist only:
+`tooltip$formatter`, `callbacks$onClick`, `callbacks$onHover`,
+`callbacks$onSelect`, the two annotation label formatters, and
+`scales$x$order`. A `js_hook()` anywhere else is an R error naming where it was
+found, rather than a string quietly serialized where a function was expected.
+
+`scales$x$order` is the one hook that only `facet_bars()` can use: facetBars
+calls it per facet as `order(facetValue, facetData)`, while plain `bars()`
+expects an array there.
+
+## The event contract
+
+Every chart dispatches a bubbling `gsm-viz-select` DOM event, so a report can
+listen once at the document level rather than wiring each chart:
+
+```js
+document.addEventListener('gsm-viz-select', function (e) {
+  console.log(e.detail);
+});
+```
+
+Two detail shapes:
+
+| field | click | select |
+| --- | --- | --- |
+| `type` | `"click"` | `"select"` |
+| `chartId` | the widget id | the widget id |
+| `facet` | facet value, or `null` | facet value, or `null` |
+| `category` | clicked category | — |
+| `fill` | clicked segment, or `null` | — |
+| `datum` | contributing row(s) | — |
+| `selection` | — | `{type, values}` |
+| `metadata` | your `metadata` list | your `metadata` list |
+
+`facet` carries the facet value on a `facet_bars()` chart and is `null`
+otherwise. User hooks supplied through `callbacks` receive upstream's full
+argument list — `(point, event)` on a plain chart, `(point, facetValue, event)`
+on a faceted one.
+
+### `datum` changes shape with `stat`
+
+This is the one field that is not a fixed type, and it is worth reading twice.
+gsm.viz sets it to **the single contributing row** under `stat = "identity"`,
+and to **the array of aggregated rows** under `stat = "count"`. gsm.vizr
+forwards it unchanged.
+
+So `detail.datum.invid` works on a pre-aggregated chart and silently yields
+`undefined` on a counting one, where you need `detail.datum[0].invid` or a
+reduction across the array. Branch on the stat mode you built the chart with.
+
+## Shiny
+
+`barsOutput()` and `renderBars()` are the usual htmlwidgets pair. Click and
+select details also arrive as `input$<id>_click` and `input$<id>_select`.
+
+`bars_proxy()` updates a rendered chart in place, without re-rendering it:
+
+```r
+observeEvent(input$refresh, {
+  bars_proxy("chart") |>
+    proxy_update_data(dfNew) |>
+    proxy_select_category("S-001")
+})
+```
+
+Selection verbs are **silent by default**: a server-driven selection does not
+echo a select event back to the server, which is what stops an update loop.
+Pass `silent = FALSE` when you do want the round trip.
+
+`proxy_update_data()` without a spec deliberately reuses the browser's live
+spec. The chart's own controls (the position and category toggles) mutate that
+spec, so the browser copy is authoritative — re-pushing a spec cached in R
+would quietly undo whatever the user had toggled.
+
+**In 0.1.0 the proxy verbs apply to `bars()` widgets only.** A verb aimed at a
+`facet_bars()` widget raises an error naming the widget and the verb, rather
+than doing nothing. Fanning verbs across facet panels needs per-panel semantics
+that upstream does not yet define — should selecting a category select it in
+one panel or all of them? — so guessing was deferred rather than baked in.
+
+## Driving a chart without Shiny
+
+`bars_proxy()` needs a Shiny session. Plenty of consumers do not have one:
+gsm.endpoints' reports and gsm.kri's premature-deaths report are plain
+`output: html_document`. Their drilldowns reach exactly the same functions from
+report JavaScript, through `chart.helpers` on the rendered element:
+
+```js
+var el = document.getElementById('my-chart-id');
+var ch = el.gsmChart;
+
+// Same call the updateData proxy verb makes. Passing the live spec preserves
+// whatever the chart's own toggles have changed.
+ch.helpers.updateData(ch, rows, ch.data._spec_);
+
+ch.helpers.selectCategory(ch, ['S-001'], undefined, { _silent: true });
+ch.helpers.clearSelection(ch, undefined, { _silent: true });
+ch.helpers.getSelection(ch);
+```
+
+Give the chart a stable id through `metadata` so report JavaScript can find it:
+
+```{r static-id, eval = FALSE}
+bars(dfSites, bars_spec(x = "site", fill = "flag"),
+  metadata = list(chartId = "my-chart-id", level = "site")
+)
+```
+
+`metadata` is echoed back in every event detail, so it is also where report-level
+routing keys belong.
+
+## For package authors
+
+If your package ships its own custom widget and needs `window.gsmViz`, declare
+the shared dependency instead of vendoring a second copy of the bundle:
+
+```{r dependency}
+dep <- html_dependency_gsm_viz()
+c(name = dep$name, version = dep$version)
+```
+
+Attach it to your widget's tags with `htmltools::attachDependencies()`. One
+vendored bundle then serves every consumer, and upgrading it is one change in
+one place.
+
+## Sizing
+
+Two independent knobs, often confused:
+
+- `minHeight` (default 500px) is a **floor**, applied as a CSS minimum so a
+  chart cannot collapse.
+- `theme$pxPerCategory` (upstream default 30) is the **growth rate** under
+  `theme$dynamicSizing`: height scales with the category count.
+
+They compose — set both to reproduce a caller's own sizing curve. A report that
+sized figures at 25px per site with a 500px minimum is:
+
+```{r sizing, eval = FALSE}
+bars_spec(
+  x = "invid", y = "n", stat = "identity", orientation = "horizontal",
+  theme = list(dynamicSizing = TRUE, pxPerCategory = 25)
+)
+```

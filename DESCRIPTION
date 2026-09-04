@@ -39,7 +39,7 @@ Imports:
     rlang,
     tidyr
 Remotes: 
-    gsm.core=Gilead-Public/gsm.core@dev
+    gsm.core=Gilead-Public/gsm.core@feature-177-ipns-lsource
 VignetteBuilder: knitr
 URL: https://github.com/Gilead-Public/gsm.vizr, https://gilead-public.github.io/gsm.vizr/
 BugReports: https://github.com/Gilead-Public/gsm.vizr/issues

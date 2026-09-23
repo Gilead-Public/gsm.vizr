@@ -90,6 +90,34 @@ test('two widgets for the same metric keep unique element ids', async ({ page })
   ids.forEach((id) => expect(id).toMatch(/^barChart--Analysis_kri0001_/));
 });
 
+test('GroupOverview adds comparison score immediately after Risk Score', async ({ page }) => {
+  await page.goto(ISOLATED);
+
+  const overview = page.locator('#page-group-overview-comparison');
+  await expect(overview.locator('table.group-overview')).toBeVisible();
+
+  const headers = await overview.locator('th').allInnerTexts();
+  const riskIndex = headers.indexOf('Risk Score');
+  expect(riskIndex).toBeGreaterThan(-1);
+  expect(headers[riskIndex + 1]).toBe('Adjusted Risk Score');
+
+  const firstRow = overview.locator('tbody tr').first();
+  const baseline = Number(await firstRow.locator('td').nth(riskIndex).innerText());
+  const adjusted = Number(await firstRow.locator('td').nth(riskIndex + 1).innerText());
+  expect(Number.isFinite(baseline)).toBe(true);
+  expect(Math.abs(adjusted - baseline / 2)).toBeLessThanOrEqual(0.5);
+});
+
+test('GroupOverview keeps its original columns when comparison score is absent', async ({ page }) => {
+  await page.goto(ISOLATED);
+
+  const overview = page.locator('#page-group-overview-baseline');
+  await expect(overview.locator('table.group-overview')).toBeVisible();
+  await expect(
+    overview.locator('th', { hasText: 'Adjusted Risk Score' })
+  ).toHaveCount(0);
+});
+
 // Labels and option values are plain data - GroupIDs, country names, outcome
 // labels - so markup in them is a report-rendering injection, never intent.
 test('select control renders labels and values as text, not markup', async ({ page }) => {

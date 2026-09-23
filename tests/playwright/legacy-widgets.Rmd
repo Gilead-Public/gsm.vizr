@@ -38,6 +38,46 @@ Widget_BarChart(
 ```
 </div>
 
+## Group overview without a comparison score
+
+<div id="page-group-overview-baseline">
+```{r group-overview-baseline}
+dfResults_overview <- gsm.core::reportingResults %>%
+  dplyr::filter(SnapshotDate == max(SnapshotDate))
+
+Widget_GroupOverview(
+  dfResults = dfResults_overview,
+  dfMetrics = gsm.core::reportingMetrics,
+  dfGroups = gsm.core::reportingGroups,
+  strGroupLevel = "Site",
+  strGroupSubset = "all"
+)
+```
+</div>
+
+## Group overview with an adjacent comparison score
+
+<div id="page-group-overview-comparison">
+```{r group-overview-comparison}
+dfResults_adjusted <- dfResults_overview %>%
+  dplyr::filter(MetricID == "Analysis_srs0001") %>%
+  dplyr::mutate(
+    MetricID = "Analysis_srs0002",
+    Score = Score / 2
+  )
+
+Widget_GroupOverview(
+  dfResults = dplyr::bind_rows(dfResults_overview, dfResults_adjusted),
+  dfMetrics = gsm.core::reportingMetrics,
+  dfGroups = gsm.core::reportingGroups,
+  strGroupLevel = "Site",
+  strGroupSubset = "all",
+  strComparisonRiskMetric = "Analysis_srs0002",
+  strComparisonRiskLabel = "Adjusted Risk Score"
+)
+```
+</div>
+
 ## Legacy KRI bar chart with controls suppressed
 
 <!--

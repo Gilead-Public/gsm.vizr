@@ -14,7 +14,9 @@ HTMLWidgets.widget({
                     {
                         GroupLevel: input.strGroupLevel,
                         groupLabelKey: input.strGroupLabelKey,
-                        SiteRiskScoreMetricID: input.strSiteRiskMetric
+                        SiteRiskScoreMetricID: input.strSiteRiskMetric,
+                        ComparisonRiskScoreMetricID: input.strComparisonRiskMetric,
+                        ComparisonRiskScoreLabel: input.strComparisonRiskLabel
                     },
                     input.dfGroups,
                     input.dfMetrics
@@ -34,6 +36,9 @@ HTMLWidgets.widget({
                 );
 
                 instance.updateTable(updatedResults);
+
+                // Explain the comparison risk score when detail is supplied.
+                addComparisonRiskDetail(el, input);
             },
             resize: function(width, height) {
             }

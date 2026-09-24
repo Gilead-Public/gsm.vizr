@@ -13,6 +13,12 @@ hosting both of its chart generations against one vendored gsm.viz 2.4.1 bundle.
 * Relocated the legacy KRI widget wrappers from gsm.kri (#4): `Widget_BarChart`,
   `Widget_ScatterPlot`, `Widget_TimeSeries`, `Widget_GroupOverview`, their Shiny
   bindings, `MakeChartConfig()`, and the shared widget-control JS/CSS.
+* Added optional comparison-risk-score support to `Widget_GroupOverview()`.
+  When the configured metric is present, its column appears immediately after
+  the existing Site Risk Score; the default layout remains unchanged (#63).
+  An optional `dfComparisonRiskDetail` adds a badge showing how far each
+  comparison score is below the Site Risk Score, and clicking a comparison
+  score lists the KRIs responsible.
 * Takes gsm.core (>= 1.3.1) in Imports, alongside dplyr, fontawesome, lifecycle,
   magrittr, purrr, rlang, and tidyr.
 

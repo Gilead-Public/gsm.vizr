@@ -51,7 +51,7 @@
 .group-overview th.group-overview--siteRiskScore {
 }
 .group-overview th.group-overview--comparisonRiskScore {
-    border-left: 2px solid #c8102e;
+    border-left: 2px solid #999;
 }
 .group-overview th.group-overview--metric {
     font-size: 0.8em;
@@ -77,7 +77,7 @@
     text-shadow: 1px 1px 1px white; /* Text shadow for better readability */
 }
 .group-overview td.group-overview--comparisonRiskScore {
-    border-left: 2px solid #e8a8b4;
+    border-left: 2px solid #ccc;
     color: black;
     text-shadow: 1px 1px 1px white;
 }

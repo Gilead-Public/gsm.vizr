@@ -36,6 +36,9 @@ HTMLWidgets.widget({
                 );
 
                 instance.updateTable(updatedResults);
+
+                // Explain the comparison risk score when detail is supplied.
+                addComparisonRiskDetail(el, input);
             },
             resize: function(width, height) {
             }

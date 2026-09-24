@@ -16,6 +16,9 @@ hosting both of its chart generations against one vendored gsm.viz 2.4.1 bundle.
 * Added optional comparison-risk-score support to `Widget_GroupOverview()`.
   When the configured metric is present, its column appears immediately after
   the existing Site Risk Score; the default layout remains unchanged (#63).
+  An optional `dfComparisonRiskDetail` adds a badge showing how far each
+  comparison score is below the Site Risk Score, and clicking a comparison
+  score lists the KRIs responsible.
 * Takes gsm.core (>= 1.3.1) in Imports, alongside dplyr, fontawesome, lifecycle,
   magrittr, purrr, rlang, and tidyr.
 

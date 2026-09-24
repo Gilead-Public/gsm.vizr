@@ -19,6 +19,13 @@
 #'   risk score displayed immediately after the site risk score.
 #' @param strComparisonRiskLabel `character` Label for the comparison risk score
 #'   column. Default: 'Adjusted Risk Score'.
+#' @param dfComparisonRiskDetail `data.frame` Optional per-KRI detail behind the
+#'   comparison risk score, such as `gsm.kri::MakeActionRiskScoreDetail()`.
+#'   Requires columns `GroupID`, `MetricID`, `Weight`, `EffectiveWeight`, and
+#'   `ActionState`; `Flag` and `ActionSnapshotDate` are shown when present.
+#'   When supplied, each comparison score shows how far it is below the site
+#'   risk score, and clicking it lists the KRIs responsible. Ignored when the
+#'   comparison metric is absent from `dfResults`. Default: NULL.
 #' @param ... `any` Additional chart configuration settings.
 #'
 #' @examples
@@ -69,6 +76,7 @@ Widget_GroupOverview <- function(
   strSiteRiskMetric = "Analysis_srs0001",
   strComparisonRiskMetric = NULL,
   strComparisonRiskLabel = "Adjusted Risk Score",
+  dfComparisonRiskDetail = NULL,
   strOutputLabel = paste0(
     fontawesome::fa("table", fill = "#337ab7"),
     "  ",
@@ -113,6 +121,13 @@ Widget_GroupOverview <- function(
       !nzchar(strComparisonRiskLabel),
     "strComparisonRiskLabel is not a single non-empty character value"
   )
+  gsm.core::stop_if(
+    cnd = !is.null(dfComparisonRiskDetail) &&
+      (!is.data.frame(dfComparisonRiskDetail) ||
+        !all(c("GroupID", "MetricID", "Weight", "EffectiveWeight", "ActionState") %in%
+          names(dfComparisonRiskDetail))),
+    "dfComparisonRiskDetail is not NULL or a data.frame with GroupID, MetricID, Weight, EffectiveWeight, and ActionState columns"
+  )
   gsm.core::stop_if(cnd = !is.logical(bDebug), "bDebug is not a logical")
 
   # set strGroupLevel if NULL and dfMetrics is not NULL
@@ -149,6 +164,12 @@ Widget_GroupOverview <- function(
       left_join(dfWeights, by = c("Flag", "MetricID"))
   }
 
+  # Detail only explains a comparison score that is actually displayed.
+  if (is.null(strComparisonRiskMetric) ||
+      !strComparisonRiskMetric %in% dfResults$MetricID) {
+    dfComparisonRiskDetail <- NULL
+  }
+
   # forward options using x
   lInput <- list(
     dfResults = dfResults,
@@ -167,6 +188,7 @@ Widget_GroupOverview <- function(
     strSiteRiskMetric = strSiteRiskMetric,
     strComparisonRiskMetric = strComparisonRiskMetric,
     strComparisonRiskLabel = strComparisonRiskLabel,
+    dfComparisonRiskDetail = dfComparisonRiskDetail,
     bDebug = bDebug
   )
 

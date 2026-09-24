@@ -3,7 +3,7 @@
  *
  * Each comparison score gets a badge showing how far it is below the site risk
  * score, and clicking a comparison score lists the KRIs whose weight was
- * reduced in a panel below the table. Does nothing unless the comparison
+ * reduced in a row directly under that group. Does nothing unless the comparison
  * column is displayed and per-KRI detail was supplied.
  *
  * @param {HTMLElement} el - widget element containing the group overview table
@@ -46,15 +46,11 @@ const addComparisonRiskDetail = function (el, input) {
         return Math.round(group.site) - Math.round(group.comparison);
     };
 
-    const panel = document.createElement('div');
-    panel.className = 'group-overview--comparison-detail';
-    panel.style.cssText = 'margin-top: 8px; font-size: 0.9em;';
-    el.appendChild(panel);
     let selectedGroup = null;
 
-    const renderPanel = () => {
-        panel.innerHTML = '';
-        if (selectedGroup === null) return;
+    const buildPanel = () => {
+        const panel = document.createElement('div');
+        panel.style.cssText = 'padding: 4px 8px 8px; font-size: 0.9em; text-align: left;';
 
         const group = scores[selectedGroup] || {};
         const rows = (detailByGroup[selectedGroup] || [])
@@ -71,23 +67,23 @@ const addComparisonRiskDetail = function (el, input) {
             `${Math.round(group.comparison)} (site risk score ${Math.round(group.site)})`;
         panel.appendChild(heading);
 
-        const table = document.createElement('table');
-        table.className = 'group-overview--comparison-detail-table';
-        table.style.cssText = 'border-collapse: collapse;';
-        const header = ['KRI', 'Flag', 'Weight', 'Action state', 'ActionLog date', 'Effect'];
-        const headRow = table.createTHead().insertRow();
-        header.forEach((label) => {
-            const th = document.createElement('th');
-            th.textContent = label;
-            th.style.cssText = 'text-align: left; padding: 2px 8px;';
-            headRow.appendChild(th);
-        });
+        // A grid of divs rather than a nested table: the group overview selects
+        // every <tr> under its tbody, and nested rows would break its redraw.
+        const grid = document.createElement('div');
+        grid.className = 'group-overview--comparison-detail-grid';
+        grid.style.cssText =
+            'display: inline-grid; grid-template-columns: repeat(6, auto); column-gap: 16px; row-gap: 2px;';
+        const addCell = (value, style) => {
+            const cell = document.createElement('div');
+            cell.textContent = value;
+            cell.style.cssText = style || '';
+            grid.appendChild(cell);
+        };
+        ['KRI', 'Flag', 'Weight', 'Action state', 'ActionLog date', 'Effect']
+            .forEach((label) => addCell(label, 'font-weight: bold;'));
 
-        const body = table.createTBody();
         rows.forEach((row) => {
-            const tr = body.insertRow();
             const reduced = row.reduction > 0;
-            if (reduced) tr.style.color = '#c8102e';
             const effect = reduced && group.denominator > 0
                 ? `−${(row.reduction / group.denominator * 100).toFixed(1)}`
                 : 'kept';
@@ -99,12 +95,34 @@ const addComparisonRiskDetail = function (el, input) {
                 isMissing(row.ActionSnapshotDate) ? '-' : row.ActionSnapshotDate,
                 effect
             ].forEach((value) => {
-                const td = tr.insertCell();
-                td.textContent = value;
-                td.style.cssText = 'padding: 2px 8px;';
+                addCell(value, reduced ? 'color: #c8102e;' : '');
             });
         });
-        panel.appendChild(table);
+        panel.appendChild(grid);
+        return panel;
+    };
+
+    // The breakdown is an extra table row directly under the selected group.
+    // The group overview's row join computes a key for every existing row, so
+    // the detail row carries a key that matches no group; a redraw then
+    // removes it and placeDetailRow() puts it back.
+    const placeDetailRow = () => {
+        el.querySelectorAll('tr.group-overview--comparison-detail').forEach((row) => row.remove());
+        if (selectedGroup === null) return;
+
+        const cell = [...el.querySelectorAll('td.group-overview--comparisonRiskScore')]
+            .find((td) => td.__data__ && td.__data__.GroupID === selectedGroup);
+        if (!cell) return; // selected group is filtered out of the table
+
+        const groupRow = cell.parentNode;
+        const detailRow = document.createElement('tr');
+        detailRow.className = 'group-overview--comparison-detail';
+        detailRow.__data__ = { key: '__comparison-detail__' };
+        const detailCell = detailRow.insertCell();
+        detailCell.colSpan = groupRow.cells.length;
+        detailCell.style.cssText = 'background: #f7f7f7; border-left: 2px solid #e8a8b4;';
+        detailCell.appendChild(buildPanel());
+        groupRow.after(detailRow);
     };
 
     // The group overview redraws its cells on sort and subset changes, which
@@ -127,23 +145,26 @@ const addComparisonRiskDetail = function (el, input) {
         });
     };
 
-    const observer = new MutationObserver(() => {
+    const refresh = (rebuildDetail) => {
         observer.disconnect();
         applyBadges();
+        const detailRow = el.querySelector('tr.group-overview--comparison-detail');
+        const detailPlaced = detailRow &&
+            detailRow.previousElementSibling &&
+            detailRow.previousElementSibling.querySelector('td.group-overview--comparisonRiskScore') &&
+            detailRow.previousElementSibling
+                .querySelector('td.group-overview--comparisonRiskScore').__data__.GroupID === selectedGroup;
+        if (rebuildDetail || (selectedGroup !== null && !detailPlaced)) placeDetailRow();
         observer.observe(el, { childList: true, subtree: true });
-    });
-    applyBadges();
-    observer.observe(el, { childList: true, subtree: true });
+    };
+    const observer = new MutationObserver(() => refresh(false));
+    refresh(false);
 
     el.addEventListener('click', (event) => {
         const cell = event.target.closest('td.group-overview--comparisonRiskScore');
         if (!cell || !cell.__data__ || !detailByGroup[cell.__data__.GroupID]) return;
         const groupID = cell.__data__.GroupID;
         selectedGroup = selectedGroup === groupID ? null : groupID;
-        observer.disconnect();
-        renderPanel();
-        observer.observe(el, { childList: true, subtree: true });
-        // The panel sits below the table, which can be long.
-        if (selectedGroup !== null) panel.scrollIntoView({ block: 'nearest' });
+        refresh(true);
     });
 };

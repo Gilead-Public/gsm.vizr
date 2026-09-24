@@ -61,42 +61,59 @@ const addComparisonRiskDetail = function (el, input) {
             }))
             .sort((a, b) => b.reduction - a.reduction || parseFloat(b.Weight) - parseFloat(a.Weight));
 
+        const points = (weight) =>
+            group.denominator > 0 ? (weight / group.denominator * 100).toFixed(1) : '-';
+        const excluded = rows.filter((row) => row.reduction > 0);
+
         const heading = document.createElement('div');
-        heading.style.cssText = 'font-weight: bold; margin-bottom: 4px;';
-        heading.textContent = `${input.strComparisonRiskLabel} for ${selectedGroup}: ` +
-            `${Math.round(group.comparison)} (site risk score ${Math.round(group.site)})`;
+        heading.style.cssText = 'font-weight: bold;';
+        heading.textContent = `${selectedGroup}: risk score ${Math.round(group.site)} → ` +
+            `${input.strComparisonRiskLabel.toLowerCase()} ${Math.round(group.comparison)}`;
         panel.appendChild(heading);
+
+        const summary = document.createElement('div');
+        summary.style.cssText = 'color: #555; margin-bottom: 6px;';
+        summary.textContent = excluded.length === 0
+            ? 'Every flagged KRI still counts toward the score.'
+            : `${excluded.length} flagged KRI${excluded.length === 1 ? '' : 's'} no longer ` +
+              `count${excluded.length === 1 ? 's' : ''} toward the score because of ` +
+              `${excluded.length === 1 ? 'its' : 'their'} action state.`;
+        panel.appendChild(summary);
 
         // A grid of divs rather than a nested table: the group overview selects
         // every <tr> under its tbody, and nested rows would break its redraw.
         const grid = document.createElement('div');
         grid.className = 'group-overview--comparison-detail-grid';
         grid.style.cssText =
-            'display: inline-grid; grid-template-columns: repeat(6, auto); column-gap: 16px; row-gap: 2px;';
-        const addCell = (value, style) => {
+            'display: inline-grid; grid-template-columns: repeat(5, auto); column-gap: 20px; row-gap: 3px;';
+        const addCell = (content, style) => {
             const cell = document.createElement('div');
-            cell.textContent = value;
+            if (content instanceof Node) cell.appendChild(content);
+            else cell.textContent = content;
             cell.style.cssText = style || '';
             grid.appendChild(cell);
         };
-        ['KRI', 'Flag', 'Weight', 'Action state', 'ActionLog date', 'Effect']
-            .forEach((label) => addCell(label, 'font-weight: bold;'));
+        ['KRI', 'Flag', 'Action state', 'ActionLog date', 'Points']
+            .forEach((label) => addCell(label, 'font-weight: bold; border-bottom: 1px solid #ccc;'));
 
         rows.forEach((row) => {
-            const reduced = row.reduction > 0;
-            const effect = reduced && group.denominator > 0
-                ? `−${(row.reduction / group.denominator * 100).toFixed(1)}`
-                : 'kept';
+            const isExcluded = row.reduction > 0;
+            let pointsCell = points(parseFloat(row.EffectiveWeight));
+            if (isExcluded) {
+                // Excluded KRIs show the points they would have added, struck through.
+                pointsCell = document.createElement('span');
+                const original = document.createElement('s');
+                original.textContent = points(parseFloat(row.Weight));
+                pointsCell.append(original, ` ${points(parseFloat(row.EffectiveWeight))}`);
+            }
+            const style = isExcluded ? 'color: #777;' : '';
             [
                 metricLabels[row.MetricID] || row.MetricID,
                 isMissing(row.Flag) ? '-' : row.Flag,
-                row.Weight,
                 isMissing(row.ActionState) ? 'Missing' : row.ActionState,
                 isMissing(row.ActionSnapshotDate) ? '-' : row.ActionSnapshotDate,
-                effect
-            ].forEach((value) => {
-                addCell(value, reduced ? 'color: #c8102e;' : '');
-            });
+                pointsCell
+            ].forEach((value) => addCell(value, style));
         });
         panel.appendChild(grid);
         return panel;
@@ -120,7 +137,7 @@ const addComparisonRiskDetail = function (el, input) {
         detailRow.__data__ = { key: '__comparison-detail__' };
         const detailCell = detailRow.insertCell();
         detailCell.colSpan = groupRow.cells.length;
-        detailCell.style.cssText = 'background: #f7f7f7; border-left: 2px solid #e8a8b4;';
+        detailCell.style.cssText = 'background: #f7f7f7; border-left: 2px solid #ccc;';
         detailCell.appendChild(buildPanel());
         groupRow.after(detailRow);
     };
@@ -132,14 +149,17 @@ const addComparisonRiskDetail = function (el, input) {
             const datum = cell.__data__;
             if (!datum || !detailByGroup[datum.GroupID]) return;
             cell.style.cursor = 'pointer';
-            cell.title = 'Show the KRIs behind this score';
             const drop = scoreDrop(datum.GroupID);
+            cell.title = drop > 0
+                ? `${drop} points lower than the risk score. Click to see why.`
+                : 'Click to see the KRIs behind this score.';
             if (drop > 0 && !cell.querySelector('.group-overview--comparison-delta')) {
+                // Neutral styling: a lower adjusted score reflects triage, not a problem.
                 const badge = document.createElement('span');
                 badge.className = 'group-overview--comparison-delta';
-                badge.textContent = `−${drop}`;
+                badge.textContent = `▼${drop}`;
                 badge.style.cssText =
-                    'margin-left: 4px; font-size: 0.8em; color: #c8102e; text-shadow: none;';
+                    'margin-left: 4px; font-size: 0.75em; color: #777; text-shadow: none;';
                 cell.appendChild(badge);
             }
         });

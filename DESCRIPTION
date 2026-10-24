@@ -1,6 +1,6 @@
 Package: gsm.vizr
 Title: R Wrappers for the gsm.viz Generic and KRI Chart Renderers
-Version: 0.1.0
+Version: 0.1.0.9000
 Authors@R: c(
     person("Michal", "Kaminski", , "michkam89@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-0850-9939")),

@@ -11,14 +11,17 @@ test_that("exactly one vendored gsm.viz bundle ships and it is the pinned one", 
     list.dirs(lib, full.names = FALSE, recursive = FALSE),
     value = TRUE
   )
-  expect_identical(bundles, "gsm.viz-2.4.1")
+  # PROVISIONAL: development bundle from Gilead-Public/gsm.viz commit
+  # 9c730931822bb74e5fa16a8051f74a629e6153a6 (PR #615, which adds tiles). A
+  # rebuild from the gsm.viz release tag is required before merge/release.
+  expect_identical(bundles, "gsm.viz-2.5.0-615")
 })
 
 test_that("the vendored bundle carries the Gilead-Public SiteRiskScore URL {#4}", {
   # Pinning a URL string inside a bundle looks odd, so: this bundle is the
-  # gsm.viz 2.4.1 tag PLUS a patch carried over from gsm.kri#285. The tag
-  # predates the Gilead-BioStats -> Gilead-Public rename, so a clean rebuild of
-  # 2.4.1 silently reintroduces the old host. That string is the default
+  # upstream gsm.viz build PLUS a patch carried over from gsm.kri#285. Upstream
+  # source still predates the Gilead-BioStats -> Gilead-Public rename, so a
+  # clean rebuild silently reintroduces the old host. That string is the default
   # SiteRiskScoreURL, i.e. the SiteRiskScore help link in every KRI report, and
   # no other test in this package or in gsm.kri asserts it. Without this test an
   # unpatched bundle bump breaks a user-visible link and every other check stays
@@ -27,7 +30,7 @@ test_that("the vendored bundle carries the Gilead-Public SiteRiskScore URL {#4}"
   index <- system.file(
     "htmlwidgets",
     "lib",
-    "gsm.viz-2.4.1",
+    "gsm.viz-2.5.0-615",
     "index.js",
     package = "gsm.vizr"
   )
@@ -46,7 +49,7 @@ test_that("the vendored bundle files are present and non-trivial", {
   dir <- system.file(
     "htmlwidgets",
     "lib",
-    "gsm.viz-2.4.1",
+    "gsm.viz-2.5.0-615",
     package = "gsm.vizr"
   )
   expect_true(nzchar(dir) && dir.exists(dir))

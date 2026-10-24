@@ -31,22 +31,7 @@ bars <- function(
   if (!is.list(spec) || is.data.frame(spec)) {
     stop("spec must be a list", call. = FALSE)
   }
-  # data.frames pass is.list(), and one serialized rows-wise would reach the
-  # browser as an array where every event consumer expects an object.
-  if (!is.list(metadata) || is.data.frame(metadata)) {
-    stop("metadata must be a list", call. = FALSE)
-  }
-  # Unnamed entries would serialize as a JSON array where every event
-  # consumer expects an object; an empty list needs names for the same reason.
-  if (
-    length(metadata) > 0 &&
-      (is.null(names(metadata)) || !all(nzchar(names(metadata))))
-  ) {
-    stop("metadata must be a named list", call. = FALSE)
-  }
-  if (length(metadata) == 0) {
-    metadata <- stats::setNames(list(), character(0))
-  }
+  metadata <- .prepare_metadata(metadata)
 
   # Validation, order derivation and array normalization all live here so a spec
   # sent later by the proxy verbs is treated identically to this first render.

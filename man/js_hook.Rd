@@ -14,8 +14,11 @@ A \code{JS_EVAL} string, as returned by \code{\link[htmlwidgets:JS]{htmlwidgets:
 }
 \description{
 Alias for \code{\link[htmlwidgets:JS]{htmlwidgets::JS()}}. Only the function-valued gsm.viz slots are
-revived in the browser: \code{tooltip$formatter}, \code{callbacks$onClick},
-\code{callbacks$onHover}, \code{callbacks$onSelect}, and the two annotation label
-formatters. Anywhere else, \code{\link[=bars]{bars()}} errors. Prefer the JSON-safe
-alternatives (\code{tooltip$format}, label \code{format} strings) where they suffice.
+revived in the browser. For \code{\link[=bars]{bars()}}: \code{tooltip$formatter},
+\code{callbacks$onClick}, \code{callbacks$onHover}, \code{callbacks$onSelect}, and the two
+annotation label formatters. For \code{\link[=tiles]{tiles()}}: \code{tooltip$formatter},
+\code{expand$tooltip$formatter}, \code{callbacks$onClick}, \code{callbacks$onRowClick},
+and \code{callbacks$onExpand}. Anywhere else, the widget errors. Prefer the
+JSON-safe alternatives (\code{tooltip$format}, label \code{format} strings) where
+they suffice.
 }

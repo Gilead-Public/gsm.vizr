@@ -28,3 +28,12 @@ rmarkdown::render(
   quiet = TRUE
 )
 cat("Rendered tests/playwright/fixture/legacy-widgets.html\n")
+# Separate fixture: tiles is an HTML table, not a Chart.js canvas, so it stays
+# off the gallery page whose specs settle every .gsm-vizr chart as Chart.js.
+rmarkdown::render(
+  "tests/playwright/tiles.Rmd",
+  output_file = "tiles.html",
+  output_dir = "tests/playwright/fixture",
+  quiet = TRUE
+)
+cat("Rendered tests/playwright/fixture/tiles.html\n")

@@ -73,6 +73,8 @@ moves together.
   : Render a gsm.viz bars chart
 - [`facet_bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/facet_bars.md)
   : Render a faceted set of gsm.viz bars charts
+- [`tiles()`](https://gilead-public.github.io/gsm.vizr/dev/reference/tiles.md)
+  : Render a gsm.viz tiles heatmap
 
 ## Spec construction
 
@@ -96,6 +98,9 @@ moves together.
   [`proxy_clear_selection()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars_proxy.md)
   [`proxy_export_image()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars_proxy.md)
   : Proxy for server-side updates to a rendered bars widget
+- [`tilesOutput()`](https://gilead-public.github.io/gsm.vizr/dev/reference/tiles-shiny.md)
+  [`renderTiles()`](https://gilead-public.github.io/gsm.vizr/dev/reference/tiles-shiny.md)
+  : Shiny bindings for tiles
 
 ## Shared runtime
 

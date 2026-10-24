@@ -2,13 +2,15 @@
 
 Alias for
 [`htmlwidgets::JS()`](https://rdrr.io/pkg/htmlwidgets/man/JS.html). Only
-the function-valued gsm.viz slots are revived in the browser:
+the function-valued gsm.viz slots are revived in the browser. For
+[`bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars.md):
 `tooltip$formatter`, `callbacks$onClick`, `callbacks$onHover`,
-`callbacks$onSelect`, and the two annotation label formatters. Anywhere
-else,
-[`bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars.md)
-errors. Prefer the JSON-safe alternatives (`tooltip$format`, label
-`format` strings) where they suffice.
+`callbacks$onSelect`, and the two annotation label formatters. For
+[`tiles()`](https://gilead-public.github.io/gsm.vizr/dev/reference/tiles.md):
+`tooltip$formatter`, `expand$tooltip$formatter`, `callbacks$onClick`,
+`callbacks$onRowClick`, and `callbacks$onExpand`. Anywhere else, the
+widget errors. Prefer the JSON-safe alternatives (`tooltip$format`,
+label `format` strings) where they suffice.
 
 ## Usage
 

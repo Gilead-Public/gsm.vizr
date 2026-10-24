@@ -229,8 +229,8 @@ bundle:
 
 dep <- html_dependency_gsm_viz()
 c(name = dep$name, version = dep$version)
-#>     name  version 
-#> "gsmViz"  "2.4.1"
+#>        name     version 
+#>    "gsmViz" "2.5.0-615"
 ```
 
 Attach it to your widget’s tags with

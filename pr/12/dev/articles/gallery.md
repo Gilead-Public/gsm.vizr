@@ -38,7 +38,7 @@ The default: one row per observation, gsm.viz does the counting.
 bars(dfSites, bars_spec(x = "site", fill = "flag"))
 ```
 
-### Horizontal stack, pre-aggregated, named colors, captions
+### Horizontal stack, pre-aggregated, named colours, captions
 
 ``` r
 
@@ -137,8 +137,7 @@ dfFacet <- data.frame(
   flag = rep(c("2", "1"), each = 4),
   country = rep(c("USA", "CAN"), each = 4)
 )
-facet_bars(
-  dfFacet, bars_spec(x = "site", fill = "flag"),
+facet_bars(dfFacet, bars_spec(x = "site", fill = "flag"),
   facet_spec("country", order = c("USA", "CAN"), nCol = 2)
 )
 ```

@@ -5,8 +5,7 @@ Alias for
 the function-valued gsm.viz slots are revived in the browser. For
 [`bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars.md):
 `tooltip$formatter`, `callbacks$onClick`, `callbacks$onHover`,
-`callbacks$onSelect`, the two annotation label formatters, and
-`scales$x$order`. For
+`callbacks$onSelect`, and the two annotation label formatters. For
 [`tiles()`](https://gilead-public.github.io/gsm.vizr/dev/reference/tiles.md):
 `tooltip$formatter`, `expand$tooltip$formatter`, `callbacks$onClick`,
 `callbacks$onRowClick`, and `callbacks$onExpand`. Anywhere else, the
@@ -29,13 +28,3 @@ js_hook(...)
 
 A `JS_EVAL` string, as returned by
 [`htmlwidgets::JS()`](https://rdrr.io/pkg/htmlwidgets/man/JS.html).
-
-## Details
-
-A function-valued `scales$x$order` is a
-[`facet_bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/facet_bars.md)
-feature: facetBars calls it once per facet as
-`order(facetValue, facetData)` to order that facet's categories. Plain
-[`bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars.md)
-hands the slot to gsm.viz, which expects an array there and has no
-function branch.

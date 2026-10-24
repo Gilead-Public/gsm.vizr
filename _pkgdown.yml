@@ -3,11 +3,11 @@ template:
   bootstrap: 5
 reference:
   - title: Widgets
-    contents: [bars, facet_bars]
+    contents: [bars, facet_bars, tiles]
   - title: Spec construction
     contents: [bars_spec, facet_spec, js_hook]
   - title: Shiny
-    contents: [bars-shiny, bars_proxy, starts_with("proxy_")]
+    contents: [bars-shiny, bars_proxy, starts_with("proxy_"), tiles-shiny]
   - title: Shared runtime
     contents: [html_dependency_gsm_viz]
   - title: Legacy KRI widgets (relocated from gsm.kri)

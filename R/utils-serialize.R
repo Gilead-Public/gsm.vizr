@@ -15,6 +15,45 @@
   )
 }
 
+#' Serialize a data.frame column-wise (internal)
+#'
+#' One array per column instead of one object per row: the keys are written
+#' once, which keeps large payloads (tens of thousands of rows) a fraction of
+#' the rows-wise size. Columns are always arrays, even for a one-row frame; the
+#' binding rebuilds rows with HTMLWidgets.dataframeToD3().
+#' @noRd
+.vizr_json_columns <- function(x) {
+  jsonlite::toJSON(
+    x,
+    dataframe = "columns",
+    null = "null",
+    na = "null",
+    auto_unbox = FALSE
+  )
+}
+
+#' Validate and normalize widget metadata (internal)
+#' @noRd
+.prepare_metadata <- function(metadata) {
+  # data.frames pass is.list(), and one serialized rows-wise would reach the
+  # browser as an array where every event consumer expects an object.
+  if (!is.list(metadata) || is.data.frame(metadata)) {
+    stop("metadata must be a list", call. = FALSE)
+  }
+  # Unnamed entries would serialize as a JSON array where every event
+  # consumer expects an object; an empty list needs names for the same reason.
+  if (
+    length(metadata) > 0 &&
+      (is.null(names(metadata)) || !all(nzchar(names(metadata))))
+  ) {
+    stop("metadata must be a named list", call. = FALSE)
+  }
+  if (length(metadata) == 0) {
+    metadata <- stats::setNames(list(), character(0))
+  }
+  metadata
+}
+
 #' Fill scales order keys from factor levels (internal)
 #'
 #' fct_infreq()/fct_rev() semantics travel to the browser as explicit

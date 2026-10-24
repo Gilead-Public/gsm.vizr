@@ -15,7 +15,7 @@ test_that("barsOutput() carries the vendored gsm.viz bundle as a dependency", {
   deps <- htmltools::findDependencies(barsOutput("chart"))
   names <- vapply(deps, function(d) d$name, character(1))
   expect_true("gsmViz" %in% names)
-  expect_identical(deps[[which(names == "gsmViz")[1]]]$version, "2.4.1")
+  expect_identical(deps[[which(names == "gsmViz")[1]]]$version, "2.5.0-615")
 })
 
 test_that("barsOutput() honours width and height", {

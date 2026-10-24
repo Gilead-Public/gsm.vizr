@@ -248,3 +248,20 @@ test('faceted charts forward facetValue and event to glue and user hooks', async
   });
   expect(result).toEqual({ grew: 1, facet: 'USA' });
 });
+
+test('tiles events are mirrored to input$<id>_click/_rowclick/_expand', async ({ page }) => {
+  await page.goto(APP);
+  const grid = page.locator('#tilesChart table');
+  await expect(grid).toBeVisible();
+  // chartId is ignored under Shiny: the output id keys the inputs.
+  expect(
+    await page.evaluate(() => !!document.getElementById('tiles-ignored-under-shiny'))
+  ).toBe(false);
+
+  await page.locator('#tilesChart td.gsm-tiles-cell').nth(1).click();
+  await expect(page.locator('#tilesEvents')).toContainText('click: P2');
+  await page.locator('#tilesChart .gsm-tiles-row-header', { hasText: 'P1' }).click();
+  await expect(page.locator('#tilesEvents')).toContainText('rowclick: P1');
+  await page.locator('#tilesChart .gsm-tiles-toggle').click();
+  await expect(page.locator('#tilesEvents')).toContainText('expand: Pulse TRUE');
+});

@@ -1,0 +1,61 @@
+---
+title: "gsm.vizr tiles fixture"
+output:
+  html_document:
+    self_contained: true
+---
+
+<script>
+// Capture every wrapper event for the Playwright specs.
+document.addEventListener('gsm-viz-select', function (e) {
+  (window.__gsmEvents = window.__gsmEvents || []).push(e.detail);
+});
+</script>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(gsm.vizr)
+```
+
+## Tiles with expandable columns
+
+```{r tiles}
+# P3 has no SBP row, so one missing cell renders. Only Pulse has detail rows,
+# so only Pulse is expandable. Both frames travel column-wise.
+dfTiles <- data.frame(
+  subjid = c("P1", "P1", "P2", "P2", "P3"),
+  vital = c("Pulse", "SBP", "Pulse", "SBP", "Pulse"),
+  flag = c("Red", "Green", "Amber", NA, "Green"),
+  rate = c("2/3", "0/2", "1/3", NA, "0/1")
+)
+dfDetail <- data.frame(
+  subjid = c("P1", "P1", "P1", "P2", "P3"),
+  vital = "Pulse",
+  seq = c(1L, 2L, 3L, 1L, 1L),
+  inWindow = c(TRUE, TRUE, FALSE, NA, FALSE),
+  value = c(72, 75, NA, 80, 66)
+)
+tiles(
+  dfTiles,
+  list(
+    mapping = list(x = "vital", y = "subjid", fill = "flag", label = "rate"),
+    scales = list(
+      y = list(order = "P3"),
+      fill = list(colors = list(Green = "#3DAF06", Amber = "#FEAA02", Red = "#FF5859"))
+    ),
+    expand = list(
+      data = dfDetail,
+      mapping = list(x = "seq", fill = "inWindow", label = "value"),
+      scales = list(fill = list(colors = list(true = "#B5462F", false = "#E8E8E8"))),
+      tooltip = list(formatter = js_hook("function (row) { return 'detail ' + row.seq; }"))
+    ),
+    tooltip = list(formatter = js_hook("function (row) { return 'hook ' + row.subjid + ' ' + row.vital; }")),
+    callbacks = list(
+      onRowClick = js_hook(
+        "function (info) { window.__rowHook = { y: info.y, self: this.id }; }"
+      )
+    )
+  ),
+  metadata = list(chartId = "chart-tiles", level = "subject")
+)
+```

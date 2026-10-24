@@ -34,6 +34,8 @@ ui <- fluidPage(
   barsOutput("facetChart"),
   actionButton("btnFacet", "proxy a facet (must fail loudly)"),
   actionButton("btnBoth", "facet verb + valid verb in one flush"),
+  tilesOutput("tilesChart"),
+  verbatimTextOutput("tilesEvents"),
   # Unlike a static rmarkdown tabset, a hidden Shiny tabPanel measures 0x0 at
   # render time, because Shiny sizes widgets from the live DOM. This is the
   # case the binding's resizeOnReveal hook exists for.
@@ -75,6 +77,29 @@ server <- function(input, output, session) {
     }
   })
   output$sel <- renderPrint(input$chart_select)
+  # tiles mirrors click/rowclick/expand to input$<outputId>_*; the chartId must
+  # be ignored under Shiny for those names to stay keyed on the output id.
+  output$tilesChart <- renderTiles(
+    tiles(
+      data.frame(subjid = c("P1", "P2"), vital = "Pulse", flag = c("Red", "Green")),
+      list(
+        mapping = list(x = "vital", y = "subjid", fill = "flag"),
+        expand = list(
+          data = data.frame(subjid = "P1", vital = "Pulse", seq = 1:2),
+          mapping = list(x = "seq")
+        )
+      ),
+      metadata = list(chartId = "tiles-ignored-under-shiny")
+    )
+  )
+  output$tilesEvents <- renderPrint({
+    cat(
+      "click:", input$tilesChart_click$datum$subjid,
+      "| rowclick:", input$tilesChart_rowclick$y,
+      "| expand:", input$tilesChart_expand$x, input$tilesChart_expand$expanded,
+      "\n"
+    )
+  })
   observeEvent(
     input$btnSelect,
     proxy_select_category(bars_proxy("chart"), "S1")

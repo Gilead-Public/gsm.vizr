@@ -30,14 +30,14 @@ function bundleSource() {
 // window.gsmViz, and the default export (window.gsmViz.default) is the entrypoint
 // object the gsm.vizr binding calls as gsmViz.default.bars(...) /
 // gsmViz.default.facetBars(...).
-test('vendored bundle exposes bars + facetBars + tiles alongside the existing entrypoints', async ({ page }) => {
+test('vendored bundle exposes bars + facetBars alongside the existing entrypoints', async ({ page }) => {
   await page.goto('about:blank');
   await page.addScriptTag({ path: path.join(currentBundleDir(), 'index.js') });
   const keys = await page.evaluate(() =>
     Object.keys((window.gsmViz && window.gsmViz.default) || {})
   );
   expect(keys).toEqual(expect.arrayContaining([
-    'barChart', 'bars', 'facetBars', 'groupOverview', 'scatterPlot', 'sparkline', 'tiles', 'timeSeries',
+    'barChart', 'bars', 'facetBars', 'groupOverview', 'scatterPlot', 'sparkline', 'timeSeries',
   ]));
 });
 

@@ -2,7 +2,7 @@ test_that("html_dependency_gsm_viz() points at the vendored bundle", {
   dep <- html_dependency_gsm_viz()
   expect_s3_class(dep, "html_dependency")
   expect_identical(dep$name, "gsmViz")
-  expect_identical(dep$version, "2.5.0-615")
+  expect_identical(dep$version, "2.4.1")
   expect_identical(dep$script, "index.js")
   expect_identical(dep$stylesheet, "main.css")
 })

@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">gsm.vizr</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.1.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,8 +56,8 @@
 
 
 <link href="gsm-vizr_files/htmltools-fill-0.5.9/fill.css" rel="stylesheet">
-<script src="gsm-vizr_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><link href="gsm-vizr_files/gsmViz-2.5.0-615/main.css" rel="stylesheet">
-<script src="gsm-vizr_files/gsmViz-2.5.0-615/index.js"></script><script src="gsm-vizr_files/bars-binding-0.1.0.9000/bars.js"></script><div class="row">
+<script src="gsm-vizr_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><link href="gsm-vizr_files/gsmViz-2.4.1/main.css" rel="stylesheet">
+<script src="gsm-vizr_files/gsmViz-2.4.1/index.js"></script><script src="gsm-vizr_files/bars-binding-0.1.0/bars.js"></script><div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Getting started with gsm.vizr</h1>
@@ -307,8 +307,8 @@ vendoring a second copy of the bundle:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dep</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/html_dependency_gsm_viz.html">html_dependency_gsm_viz</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>name <span class="op">=</span> <span class="va">dep</span><span class="op">$</span><span class="va">name</span>, version <span class="op">=</span> <span class="va">dep</span><span class="op">$</span><span class="va">version</span><span class="op">)</span></span>
-<span><span class="co">#&gt;        name     version </span></span>
-<span><span class="co">#&gt;    "gsmViz" "2.5.0-615"</span></span></code></pre></div>
+<span><span class="co">#&gt;     name  version </span></span>
+<span><span class="co">#&gt; "gsmViz"  "2.4.1"</span></span></code></pre></div>
 <p>Attach it to your widget’s tags with
 <code><a href="https://rstudio.github.io/htmltools/reference/htmlDependencies.html" class="external-link">htmltools::attachDependencies()</a></code>. One vendored bundle then
 serves every consumer, and upgrading it is one change in one place.</p>

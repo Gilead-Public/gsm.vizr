@@ -78,7 +78,7 @@ bars_spec <- function(
   x
 }
 
-# Mirrors gsm.viz src/bars/validateSpec.js (2.4.1; unchanged at 9c73093) message-for-message and in
+# Mirrors gsm.viz src/bars/validateSpec.js (2.4.1) message-for-message and in
 # the same order, so a spec with several problems reports the same first one and
 # this file stays diffable against the JS. Two deliberate divergences:
 # referenceLines indices are 1-based (R), not 0-based; and the `data` checks
@@ -362,7 +362,7 @@ facet_spec <- function(
   facet
 }
 
-# Mirrors gsm.viz src/facetBars/validateSpec.js (2.4.1; unchanged at 9c73093) message-for-message and
+# Mirrors gsm.viz src/facetBars/validateSpec.js (2.4.1) message-for-message and
 # in the same order. facetBars validates a different set than bars, so
 # facet_bars() is the only entrypoint these branches guard.
 .validate_facet_spec <- function(facet) {

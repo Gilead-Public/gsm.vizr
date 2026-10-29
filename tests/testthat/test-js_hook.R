@@ -33,7 +33,8 @@ test_that("every allowed slot is extractable", {
         segment = list(formatter = js_hook("function () {}")),
         total = list(formatter = js_hook("function () {}"))
       )
-    )
+    ),
+    scales = list(x = list(order = js_hook("function () { return []; }")))
   )
   hooks <- jsonlite::fromJSON(bars(df, spec)$x$jsHooks)
   expect_setequal(
@@ -44,7 +45,8 @@ test_that("every allowed slot is extractable", {
       "callbacks.onHover",
       "callbacks.onSelect",
       "annotations.labels.segment.formatter",
-      "annotations.labels.total.formatter"
+      "annotations.labels.total.formatter",
+      "scales.x.order"
     )
   )
 })

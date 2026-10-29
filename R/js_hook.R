@@ -2,9 +2,15 @@
 #'
 #' Alias for [htmlwidgets::JS()]. Only the function-valued gsm.viz slots are
 #' revived in the browser: `tooltip$formatter`, `callbacks$onClick`,
-#' `callbacks$onHover`, `callbacks$onSelect`, and the two annotation label
-#' formatters. Anywhere else, [bars()] errors. Prefer the JSON-safe
-#' alternatives (`tooltip$format`, label `format` strings) where they suffice.
+#' `callbacks$onHover`, `callbacks$onSelect`, the two annotation label
+#' formatters, and `scales$x$order`. Anywhere else, [bars()] errors. Prefer the
+#' JSON-safe alternatives (`tooltip$format`, label `format` strings) where they
+#' suffice.
+#'
+#' A function-valued `scales$x$order` is a [facet_bars()] feature: facetBars
+#' calls it once per facet as `order(facetValue, facetData)` to order that
+#' facet's categories. Plain [bars()] hands the slot to gsm.viz, which expects
+#' an array there and has no function branch.
 #' @param ... Character strings of JavaScript, concatenated by newlines.
 #' @return A `JS_EVAL` string, as returned by [htmlwidgets::JS()].
 #' @export
@@ -16,7 +22,9 @@ js_hook <- function(...) htmlwidgets::JS(...)
   c("callbacks", "onHover"),
   c("callbacks", "onSelect"),
   c("annotations", "labels", "segment", "formatter"),
-  c("annotations", "labels", "total", "formatter")
+  c("annotations", "labels", "total", "formatter"),
+  # facetBars-only: upstream calls it per facet. See js_hook()'s note.
+  c("scales", "x", "order")
 )
 
 #' Split JS_EVAL slots out of a spec (internal)

@@ -327,7 +327,8 @@ bars_spec <- function(
   if (is.null(value) || inherits(value, "JS_EVAL")) {
     return(invisible())
   }
-  if (!is.character(value) || length(value) != 1) {
+  # is.na() last: it needs the length-1 guard ahead of it to stay scalar.
+  if (!is.character(value) || length(value) != 1 || is.na(value)) {
     .fail(path, " must be a string or function")
   }
 }

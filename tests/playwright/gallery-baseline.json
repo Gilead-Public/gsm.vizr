@@ -243,6 +243,10 @@
     "facets": 2
   },
   {
+    "id": "chart-facet-order-hook",
+    "facets": 2
+  },
+  {
     "id": "chart-fill100",
     "labels": [
       "S-001",

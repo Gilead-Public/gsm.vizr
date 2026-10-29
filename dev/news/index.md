@@ -1,37 +1,33 @@
 # Changelog
 
+## gsm.vizr (development version)
+
 ## gsm.vizr 0.1.0
 
-Initial release: htmlwidgets wrapper for the gsm.viz 2.4.1
-`bars`/`facetBars` renderers.
+Initial release: an htmlwidgets interface to the gsm.viz JavaScript
+library, hosting both of its chart generations against one vendored
+gsm.viz 2.4.1 bundle.
 
 - [`bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars.md)/[`facet_bars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/facet_bars.md)
   widgets over one vendored bundle.
-
 - [`bars_spec()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars_spec.md)/[`facet_spec()`](https://gilead-public.github.io/gsm.vizr/dev/reference/facet_spec.md)
   validation mirroring gsm.viz `validateSpec.js`; factor levels derive
   category/stack order automatically.
-
 - [`js_hook()`](https://gilead-public.github.io/gsm.vizr/dev/reference/js_hook.md)
   for function-valued slots, revived on an allowlist only.
-
 - `gsm-viz-select` event contract with Shiny input mirroring.
-
 - [`barsOutput()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars-shiny.md)/[`renderBars()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars-shiny.md)/[`bars_proxy()`](https://gilead-public.github.io/gsm.vizr/dev/reference/bars_proxy.md)
   verbs (silent by default).
-
 - [`html_dependency_gsm_viz()`](https://gilead-public.github.io/gsm.vizr/dev/reference/html_dependency_gsm_viz.md)
   for other packages’ custom widgets.
-
 - Relocated the legacy KRI widget wrappers from gsm.kri
   ([\#4](https://github.com/Gilead-Public/gsm.vizr/issues/4)):
   `Widget_BarChart`, `Widget_ScatterPlot`, `Widget_TimeSeries`,
   `Widget_GroupOverview`, their Shiny bindings,
   [`MakeChartConfig()`](https://gilead-public.github.io/gsm.vizr/dev/reference/MakeChartConfig.md),
-  and the shared widget-control JS/CSS. gsm.vizr now hosts both the
-  generic `bars` family and the legacy renderers’ wrappers, and takes
-  gsm.core (plus dplyr, fontawesome, lifecycle, magrittr, purrr, rlang,
-  tidyr) in Imports.
+  and the shared widget-control JS/CSS.
+- Takes gsm.core (\>= 1.3.1) in Imports, alongside dplyr, fontawesome,
+  lifecycle, magrittr, purrr, rlang, and tidyr.
 
 ### Things to know
 

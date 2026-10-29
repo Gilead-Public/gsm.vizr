@@ -115,6 +115,18 @@ test('facet, shared-dependency, and empty pages render without errors', async ({
   // facet$order is the array slot no order derivation covers - only
   // .normalize_spec_arrays() keeps it an array, and this proves it took effect.
   expect(facet.panels).toEqual(['USA', 'CAN']);
+  // The facetBars-only js_hook slot, on its own page so chart-facet keeps
+  // proving the default ordering. Getting the reverse of the alphanumeric
+  // default is what separates a revived function from an ignored string.
+  const hookOrder = await page.evaluate(() =>
+    document
+      .getElementById('chart-facet-order-hook')
+      .gsmFacet.charts.map((c) => c.data.labels)
+  );
+  expect(hookOrder).toEqual([
+    ['S-002', 'S-001'],
+    ['S-002', 'S-001'],
+  ]);
   const pd = await page.evaluate(
     () => !!document.getElementById('chart-pd-dependency').gsmChart
   );

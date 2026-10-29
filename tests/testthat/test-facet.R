@@ -96,6 +96,29 @@ test_that("facet_bars() serializes the facet slot and derives orders", {
   expect_identical(spec$scales$x$order, c("S2", "S1"))
 })
 
+test_that("facet_bars() takes a function-valued x order as a js_hook {#1}", {
+  # facetBars calls scales.x.order(facetValue, facetData) per facet, so it is
+  # the one order form that must survive as a function rather than an array.
+  df <- data.frame(site = c("S1", "S2"), country = c("USA", "CAN"))
+  w <- facet_bars(
+    df,
+    bars_spec(
+      x = "site",
+      scales = list(
+        x = list(order = js_hook("function (f, d) { return ['S1', 'S2']; }"))
+      )
+    ),
+    facet_spec("country")
+  )
+  expect_identical(
+    jsonlite::fromJSON(w$x$jsHooks),
+    "scales.x.order"
+  )
+  # Revival needs the body as a plain string at that path, not a JS_EVAL.
+  spec <- jsonlite::fromJSON(w$x$spec, simplifyVector = TRUE)
+  expect_match(spec$scales$x$order, "^function")
+})
+
 test_that("facet_bars() enforces the x-order rule only facetBars checks", {
   # bars/validateSpec.js never type-checks scales.x.order; facetBars does, so
   # this is the one entrypoint where a named-list order would reach a validator.

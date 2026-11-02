@@ -29,10 +29,10 @@ gsm.viz 2.4.1 bundle.
   When the configured metric is present, its column appears immediately
   after the existing Site Risk Score; the default layout remains
   unchanged
-  ([\#63](https://github.com/Gilead-Public/gsm.vizr/issues/63)). An
-  optional `dfComparisonRiskDetail` adds a badge showing how far each
-  comparison score is below the Site Risk Score, and clicking a
-  comparison score lists the KRIs responsible.
+  ([\#63](https://github.com/Gilead-Public/gsm.vizr/issues/63)). With
+  the optional `dfComparisonRiskDetail`, clicking a score in that column
+  lists the KRIs behind it, their action state, and whether each counts
+  toward the score.
 - Takes gsm.core (\>= 1.3.1) in Imports, alongside dplyr, fontawesome,
   lifecycle, magrittr, purrr, rlang, and tidyr.
 

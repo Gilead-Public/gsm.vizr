@@ -23,9 +23,10 @@
 #'   comparison risk score, such as `gsm.kri::MakeActionRiskScoreDetail()`.
 #'   Requires columns `GroupID`, `MetricID`, `Weight`, `EffectiveWeight`, and
 #'   `ActionState`; `Flag` and `ActionSnapshotDate` are shown when present.
-#'   When supplied, each comparison score shows how far it is below the site
-#'   risk score, and clicking it lists the KRIs responsible. Ignored when the
-#'   comparison metric is absent from `dfResults`. Default: NULL.
+#'   When supplied, clicking a score in the second risk score column opens a
+#'   row under that group listing its KRIs, their action state, and whether
+#'   each counts toward the score. Ignored when the second metric is absent
+#'   from `dfResults`. Default: NULL.
 #' @param ... `any` Additional chart configuration settings.
 #'
 #' @examples

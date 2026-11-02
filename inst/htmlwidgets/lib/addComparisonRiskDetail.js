@@ -1,10 +1,11 @@
 /**
- * Explain the comparison risk score column of a group overview table.
+ * Explain the second risk score column of a group overview table.
  *
- * Each comparison score gets a badge showing how far it is below the site risk
- * score, and clicking a comparison score lists the KRIs whose weight was
- * reduced in a row directly under that group. Does nothing unless the comparison
- * column is displayed and per-KRI detail was supplied.
+ * Clicking a score in that column opens a row directly under the group listing
+ * the KRIs behind it, with their action state and whether each counts toward
+ * the score. The score is its own measure, so it is not compared with the site
+ * risk score. Does nothing unless the column is displayed and per-KRI detail
+ * was supplied.
  *
  * @param {HTMLElement} el - widget element containing the group overview table
  * @param {Object} input - widget input from Widget_GroupOverview()
@@ -21,13 +22,7 @@ const addComparisonRiskDetail = function (el, input) {
 
     const scores = {};
     input.dfResults.forEach((result) => {
-        if (result.MetricID !== input.strSiteRiskMetric && result.MetricID !== comparisonMetric) return;
-        const group = (scores[result.GroupID] = scores[result.GroupID] || {});
-        if (result.MetricID === input.strSiteRiskMetric) group.site = parseFloat(result.Score);
-        if (result.MetricID === comparisonMetric) {
-            group.comparison = parseFloat(result.Score);
-            group.denominator = parseFloat(result.Denominator);
-        }
+        if (result.MetricID === comparisonMetric) scores[result.GroupID] = parseFloat(result.Score);
     });
 
     const metricLabels = {};
@@ -40,45 +35,21 @@ const addComparisonRiskDetail = function (el, input) {
         (detailByGroup[row.GroupID] = detailByGroup[row.GroupID] || []).push(row);
     });
 
-    const scoreDrop = (groupID) => {
-        const group = scores[groupID];
-        if (!group || isNaN(group.site) || isNaN(group.comparison)) return 0;
-        return Math.round(group.site) - Math.round(group.comparison);
-    };
-
     let selectedGroup = null;
 
     const buildPanel = () => {
         const panel = document.createElement('div');
         panel.style.cssText = 'padding: 4px 8px 8px; font-size: 0.9em; text-align: left;';
 
-        const group = scores[selectedGroup] || {};
         const rows = (detailByGroup[selectedGroup] || [])
             .filter((row) => parseFloat(row.Weight) !== 0)
-            .map((row) => ({
-                ...row,
-                reduction: parseFloat(row.Weight) - parseFloat(row.EffectiveWeight)
-            }))
-            .sort((a, b) => b.reduction - a.reduction || parseFloat(b.Weight) - parseFloat(a.Weight));
-
-        const points = (weight) =>
-            group.denominator > 0 ? (weight / group.denominator * 100).toFixed(1) : '-';
-        const excluded = rows.filter((row) => row.reduction > 0);
+            .sort((a, b) => parseFloat(b.Weight) - parseFloat(a.Weight));
 
         const heading = document.createElement('div');
-        heading.style.cssText = 'font-weight: bold;';
-        heading.textContent = `${selectedGroup}: risk score ${Math.round(group.site)} → ` +
-            `${input.strComparisonRiskLabel.toLowerCase()} ${Math.round(group.comparison)}`;
+        heading.style.cssText = 'font-weight: bold; margin-bottom: 6px;';
+        heading.textContent =
+            `${selectedGroup}: ${input.strComparisonRiskLabel} ${Math.round(scores[selectedGroup])}`;
         panel.appendChild(heading);
-
-        const summary = document.createElement('div');
-        summary.style.cssText = 'color: #555; margin-bottom: 6px;';
-        summary.textContent = excluded.length === 0
-            ? 'Every flagged KRI still counts toward the score.'
-            : `${excluded.length} flagged KRI${excluded.length === 1 ? '' : 's'} no longer ` +
-              `count${excluded.length === 1 ? 's' : ''} toward the score because of ` +
-              `${excluded.length === 1 ? 'its' : 'their'} action state.`;
-        panel.appendChild(summary);
 
         // A grid of divs rather than a nested table: the group overview selects
         // every <tr> under its tbody, and nested rows would break its redraw.
@@ -88,32 +59,24 @@ const addComparisonRiskDetail = function (el, input) {
             'display: inline-grid; grid-template-columns: repeat(5, auto); column-gap: 20px; row-gap: 3px;';
         const addCell = (content, style) => {
             const cell = document.createElement('div');
-            if (content instanceof Node) cell.appendChild(content);
-            else cell.textContent = content;
+            cell.textContent = content;
             cell.style.cssText = style || '';
             grid.appendChild(cell);
         };
-        ['KRI', 'Flag', 'Action state', 'ActionLog date', 'Points']
+        ['KRI', 'Flag', 'Action state', 'ActionLog date', 'Counted']
             .forEach((label) => addCell(label, 'font-weight: bold; border-bottom: 1px solid #ccc;'));
 
         rows.forEach((row) => {
-            const isExcluded = row.reduction > 0;
-            let pointsCell = points(parseFloat(row.EffectiveWeight));
-            if (isExcluded) {
-                // Excluded KRIs show the points they would have added, struck through.
-                pointsCell = document.createElement('span');
-                const original = document.createElement('s');
-                original.textContent = points(parseFloat(row.Weight));
-                pointsCell.append(original, ` ${points(parseFloat(row.EffectiveWeight))}`);
-            }
-            const style = isExcluded ? 'color: #777;' : '';
+            const weight = parseFloat(row.Weight);
+            const effective = parseFloat(row.EffectiveWeight);
+            const counted = effective <= 0 ? 'No' : effective < weight ? 'Partly' : 'Yes';
             [
                 metricLabels[row.MetricID] || row.MetricID,
                 isMissing(row.Flag) ? '-' : row.Flag,
                 isMissing(row.ActionState) ? 'Missing' : row.ActionState,
                 isMissing(row.ActionSnapshotDate) ? '-' : row.ActionSnapshotDate,
-                pointsCell
-            ].forEach((value) => addCell(value, style));
+                counted
+            ].forEach((value) => addCell(value, counted === 'No' ? 'color: #777;' : ''));
         });
         panel.appendChild(grid);
         return panel;
@@ -142,32 +105,20 @@ const addComparisonRiskDetail = function (el, input) {
         groupRow.after(detailRow);
     };
 
-    // The group overview redraws its cells on sort and subset changes, which
-    // removes the badges, so they are re-applied whenever the table changes.
-    const applyBadges = () => {
+    // The group overview redraws its cells on sort and subset changes, so the
+    // click affordance is re-applied whenever the table changes.
+    const markClickable = () => {
         el.querySelectorAll('td.group-overview--comparisonRiskScore').forEach((cell) => {
             const datum = cell.__data__;
             if (!datum || !detailByGroup[datum.GroupID]) return;
             cell.style.cursor = 'pointer';
-            const drop = scoreDrop(datum.GroupID);
-            cell.title = drop > 0
-                ? `${drop} points lower than the risk score. Click to see why.`
-                : 'Click to see the KRIs behind this score.';
-            if (drop > 0 && !cell.querySelector('.group-overview--comparison-delta')) {
-                // Neutral styling: a lower adjusted score reflects triage, not a problem.
-                const badge = document.createElement('span');
-                badge.className = 'group-overview--comparison-delta';
-                badge.textContent = `▼${drop}`;
-                badge.style.cssText =
-                    'margin-left: 4px; font-size: 0.75em; color: #777; text-shadow: none;';
-                cell.appendChild(badge);
-            }
+            cell.title = 'Click to see the KRIs behind this score.';
         });
     };
 
     const refresh = (rebuildDetail) => {
         observer.disconnect();
-        applyBadges();
+        markClickable();
         const detailRow = el.querySelector('tr.group-overview--comparison-detail');
         const detailPlaced = detailRow &&
             detailRow.previousElementSibling &&

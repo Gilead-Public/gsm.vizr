@@ -2,8 +2,10 @@ HTMLWidgets.widget({
     name: 'Widget_GroupOverview',
     type: 'output',
     factory: function(el, width, height) {
+        let cleanupDetail = null;
         return {
             renderValue: function(input) {
+                if (cleanupDetail) cleanupDetail();
                 if (input.bDebug)
                     console.log(input);
 
@@ -38,7 +40,7 @@ HTMLWidgets.widget({
                 instance.updateTable(updatedResults);
 
                 // Explain the comparison risk score when detail is supplied.
-                addComparisonRiskDetail(el, input);
+                cleanupDetail = addComparisonRiskDetail(el, input, instance);
             },
             resize: function(width, height) {
             }

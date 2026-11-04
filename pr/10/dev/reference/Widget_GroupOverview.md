@@ -99,7 +99,17 @@ Widget_GroupOverview(
   clicking a score in the second risk score column opens a row under
   that group listing its KRIs, their action state, and whether each
   counts toward the score. Ignored when the second metric is absent from
-  `dfResults`. Default: NULL.
+  `dfResults`. Default: NULL. Dated detail with `ActionWindowDays`,
+  `DaysSinceAction`, `DecisionCoversFinding`, and `LastActionedDate`
+  enables window, hide, and priority-exclusion controls. Only explicitly
+  covered, recently addressed findings can be excluded. All KRIs remain
+  visible by default; zero-weight and unweighted detail rows are
+  retained. The original score and flags never change. Window/exclusion
+  changes are labelled as a preview and reapply the active sort. Hiding
+  changes presentation only. The JSON download includes visible sites,
+  reported and preview scores, active settings, and complete evidence
+  including hidden rows. Source IDs, action assessment and extraction
+  dates, and date provenance are displayed when supplied.
 
 - strOutputLabel:
 

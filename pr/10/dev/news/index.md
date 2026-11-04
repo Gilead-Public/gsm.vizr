@@ -33,6 +33,15 @@ gsm.viz 2.4.1 bundle.
   the optional `dfComparisonRiskDetail`, clicking a score in that column
   lists the KRIs behind it, their action state, and whether each counts
   toward the score.
+- Dated comparison detail adds an inclusive configurable action window,
+  a presentation-only hide filter, and an exclusion toggle for review
+  priority. Only covered recent decisions can be excluded; original
+  scores and flags remain unchanged. Interactive settings are marked as
+  a preview, survive redraws, and reapply sorting. The accessible scroll
+  region supports mobile tables, and JSON downloads retain reported
+  scores, preview settings, and complete per-KRI evidence including
+  hidden rows
+  ([\#63](https://github.com/Gilead-Public/gsm.vizr/issues/63)).
 - Takes gsm.core (\>= 1.3.1) in Imports, alongside dplyr, fontawesome,
   lifecycle, magrittr, purrr, rlang, and tidyr.
 

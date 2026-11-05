@@ -40,7 +40,7 @@ HTMLWidgets.widget({
                 instance.updateTable(updatedResults);
 
                 // Explain the comparison risk score when detail is supplied.
-                cleanupDetail = addComparisonRiskDetail(el, input, instance);
+                cleanupDetail = addComparisonRiskDetail(el, input);
             },
             resize: function(width, height) {
             }

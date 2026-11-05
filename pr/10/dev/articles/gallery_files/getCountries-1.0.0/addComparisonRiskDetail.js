@@ -21,11 +21,9 @@ const addComparisonRiskDetail = function (el, input) {
         value === null || value === undefined || value === 'NA' || value === '';
 
     const scores = {};
-    const comparisonResults = {};
     input.dfResults.forEach((result) => {
         if (result.MetricID === comparisonMetric) {
             scores[result.GroupID] = parseFloat(result.Score);
-            comparisonResults[result.GroupID] = result;
         }
     });
 
@@ -50,17 +48,53 @@ const addComparisonRiskDetail = function (el, input) {
         !isMissing(row.DaysSinceAction) &&
         Number.isFinite(Number(row.DaysSinceAction)) &&
         Number(row.DaysSinceAction) >= 0 && Number(row.DaysSinceAction) <= windowDays;
+    const hasRecentFlag = (row) => {
+        const hasHistory = Object.prototype.hasOwnProperty.call(row, 'DaysSinceFlag');
+        const flag = hasHistory ? row.LastFlaggedFlag : row.Flag;
+        const snapshot = hasHistory ? row.LastFlaggedDate : row.SnapshotDate ||
+            input.dfResults.find((result) => result.GroupID === row.GroupID && result.MetricID === row.MetricID)?.SnapshotDate;
+        const age = hasHistory ? row.DaysSinceFlag :
+            (Date.parse(row.ActionAsOfDate || datedDetail?.ActionAsOfDate) - Date.parse(snapshot)) / 86400000;
+        return !isMissing(flag) && Number.isFinite(Number(flag)) && Number(flag) !== 0 &&
+            !isMissing(age) && Number.isFinite(Number(age)) && Number(age) >= 0 && Number(age) <= windowDays;
+    };
     const actionReason = (row) => dateWindowMode
         ? row.ActionReason || row.ActionCoverageReason || row.ActionRecency || 'Unknown'
         : row.ActionState;
+    const detailFlag = (row) => dateWindowMode && hasRecentFlag(row) && !isMissing(row.LastFlaggedFlag)
+        ? row.LastFlaggedFlag
+        : dateWindowMode && isRecent(row) && !isMissing(row.ActionedFlag) ? row.ActionedFlag : row.Flag;
+    const actionTimestamp = (row) => {
+        const timestamp = isMissing(row.LastActionedDate) ? NaN : Date.parse(row.LastActionedDate);
+        return Number.isFinite(timestamp) ? timestamp : -Infinity;
+    };
+    const flagMagnitude = (row) => {
+        const flag = detailFlag(row);
+        return !isMissing(flag) && Number.isFinite(Number(flag)) ? Math.abs(Number(flag)) : -Infinity;
+    };
+    const kriOrder = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
     const buildPanel = () => {
         const panel = document.createElement('div');
         panel.style.cssText = 'padding: 4px 8px 8px; font-size: 0.9em; text-align: left; overflow-x: auto;';
 
         const rows = (detailByGroup[selectedGroup] || [])
-            .filter((row) => dateWindowMode || parseFloat(row.Weight) !== 0)
-            .sort((a, b) => parseFloat(b.Weight) - parseFloat(a.Weight));
+            .map((row) => isMissing(row.Flag) ? {
+                ...row,
+                Flag: input.dfResults.find((result) =>
+                    result.GroupID === row.GroupID && result.MetricID === row.MetricID)?.Flag
+            } : row)
+            .filter((row) => dateWindowMode ? hasRecentFlag(row) || isRecent(row) :
+                !isMissing(row.Flag) && Number.isFinite(Number(row.Flag)) && Number(row.Flag) !== 0)
+            .sort((left, right) => {
+                const leftDate = actionTimestamp(left);
+                const rightDate = actionTimestamp(right);
+                if (leftDate !== rightDate) return leftDate > rightDate ? -1 : 1;
+                const leftSeverity = flagMagnitude(left);
+                const rightSeverity = flagMagnitude(right);
+                if (leftSeverity !== rightSeverity) return leftSeverity > rightSeverity ? -1 : 1;
+                return kriOrder.compare(String(left.MetricID), String(right.MetricID));
+            });
 
         const heading = document.createElement('div');
         heading.style.cssText = 'font-weight: bold; margin-bottom: 6px;';
@@ -74,7 +108,7 @@ const addComparisonRiskDetail = function (el, input) {
         grid.className = 'group-overview--comparison-detail-grid';
         grid.setAttribute('role', 'table');
         const headers = dateWindowMode
-            ? ['KRI', 'Flag', 'Action state', 'Last addressed', 'Days ago', 'Review status', 'Counted', 'Source IDs']
+            ? ['KRI', 'Flag', 'Action state', 'Last Addressed', 'Days Ago', 'Counted']
             : ['KRI', 'Flag', 'Action state', 'Signal snapshot', 'Counted'];
         grid.style.cssText =
             `display: inline-grid; grid-template-columns: repeat(${headers.length}, max-content); column-gap: 20px; row-gap: 3px;`;
@@ -97,21 +131,23 @@ const addComparisonRiskDetail = function (el, input) {
             line.dataset.metricId = row.MetricID;
             line.style.display = 'contents';
             if (!dateWindowMode && counted === 'No') line.style.color = '#666';
+            const displayedFlag = detailFlag(row);
+            const displayedActionState = dateWindowMode &&
+                (isMissing(row.ActionState) || ['Not flagged', 'Not assessed'].includes(row.ActionState))
+                ? 'Not recorded' : row.ActionState;
             const values = [
                 metricLabels[row.MetricID] || row.MetricID,
-                isMissing(row.Flag) ? '-' : row.Flag,
-                isMissing(row.ActionState) ? 'Missing' : row.ActionState,
+                isMissing(displayedFlag) ? '-' : displayedFlag,
+                isMissing(displayedActionState) ? 'Missing' : displayedActionState,
                 ...(dateWindowMode ? [
                     isMissing(row.LastActionedDate) ? '-' : row.LastActionedDate,
-                    isMissing(row.DaysSinceAction) ? '-' : row.DaysSinceAction,
-                    actionReason(row)
+                    isMissing(row.DaysSinceAction) ? '-' : row.DaysSinceAction
                 ] : [isMissing(row.ActionSnapshotDate) ? '-' : row.ActionSnapshotDate]),
                 counted
             ];
-            if (dateWindowMode) values.push([row.ActionRiskSignalID, row.ActionID].filter((value) => !isMissing(value)).join(' / ') || '-');
             values.forEach((value) => addCell(line, value));
             line.title = dateWindowMode
-                ? `As of: ${row.ActionAsOfDate}; extraction: ${row.ActionExtractionDate || '-'}; source: ${row.ActionedDateSource || '-'}`
+                ? `As of: ${row.ActionAsOfDate}; latest flagged snapshot: ${row.LastFlaggedDate || '-'}; current flag: ${isMissing(row.Flag) ? '-' : row.Flag}; extraction: ${row.ActionExtractionDate || '-'}; source: ${row.ActionedDateSource || '-'}`
                 : '';
             grid.appendChild(line);
         });
@@ -225,48 +261,6 @@ const addComparisonRiskDetail = function (el, input) {
         });
         highlightLabel.append(highlightCheckbox, document.createTextNode(' Highlight actions within 90 days'));
         controls.appendChild(highlightLabel);
-        const downloadButton = document.createElement('button');
-        downloadButton.type = 'button';
-        downloadButton.textContent = 'Download review data';
-        downloadButton.title = 'Download action evidence and reported risk scores as JSON';
-        downloadButton.addEventListener('click', () => {
-            const visible = new Set([...el.querySelectorAll('td.group-overview--comparisonRiskScore')]
-                .map((cell) => cell.__data__.GroupID));
-            const payload = {
-                settings: {
-                    actionWindowDays: datedDetail.ActionWindowDays,
-                    highlightWindowDays: windowDays,
-                    highlightRecentActions,
-                    actionAsOfDate: datedDetail.ActionAsOfDate
-                },
-                groups: Object.entries(comparisonResults)
-                    .filter(([groupID]) => visible.has(groupID))
-                    .map(([groupID, result]) => {
-                        const original = input.dfResults.find((row) => row.GroupID === groupID &&
-                            row.MetricID === (input.strSiteRiskMetric || 'Analysis_srs0001'));
-                        return {
-                            GroupID: groupID,
-                            OriginalRiskScore: original ? Number(original.Score) : null,
-                            ReportedPriorityScore: Number(result.Score),
-                            ReviewPriorityScore: scores[groupID],
-                            Numerator: Number(result.Numerator),
-                            Denominator: Number(result.Denominator),
-                            KRIs: (detailByGroup[groupID] || []).map((row) => ({
-                                ...row,
-                                RecentAction: isRecent(row),
-                                ActionReason: actionReason(row)
-                            }))
-                        };
-                    })
-            };
-            const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'review-priority.json';
-            link.click();
-            setTimeout(() => URL.revokeObjectURL(url), 0);
-        });
-        controls.appendChild(downloadButton);
         const table = el.querySelector('table.group-overview');
         tableScroll = document.createElement('div');
         tableScroll.className = 'group-overview--comparison-scroll';

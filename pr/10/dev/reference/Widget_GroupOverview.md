@@ -22,6 +22,7 @@ Widget_GroupOverview(
   strOutputLabel = paste0(fontawesome::fa("table", fill = "#337ab7"), "  ",
     strGroupLevel, " Overview"),
   bDebug = FALSE,
+  dfResultsHistory = NULL,
   ...
 )
 ```
@@ -106,14 +107,24 @@ Widget_GroupOverview(
   age. This recency indicator is independent of decision coverage and
   does not imply risk resolution. A single "Highlight actions within 90
   days" checkbox, on by default, toggles only the border and retains its
-  state through sorting and redraws. All cells and detail rows remain
-  visible, including zero-weight results. There are no window, hide, or
-  score-exclusion controls; reported scores, flag colors, and
+  state through sorting and redraws. All matrix cells remain visible.
+  The expanded breakdown includes KRIs flagged or actioned in any
+  snapshot within the inclusive 90-day history, including findings that
+  are now green and historical-only results. `dfResultsHistory` supplies
+  flag snapshots; explicit action dates supply action recency. Items
+  with neither recent evidence are omitted. There are no window, hide,
+  or score-exclusion controls; reported scores, flag colors, and
   contribution fields are never changed by the widget. Borders survive
-  sorting and redraws. The JSON download includes visible sites,
-  reported scores, per-KRI evidence, and separate score/highlight
-  windows. Source IDs, assessment and extraction dates, and date
-  provenance are displayed when supplied.
+  sorting and redraws. The dated breakdown has six columns: KRI, Flag,
+  Action state, Last Addressed, Days Ago, and Counted. Its Flag is the
+  latest flagged value in the window, or the reviewed flag for a recent
+  action; the main matrix keeps the current flag. Counted reflects the
+  unchanged reported contribution. Rows sort by newest Last Addressed
+  date, then descending absolute displayed flag, then natural KRI
+  number; undated rows come last. The tooltip retains the flag snapshot,
+  current flag, assessment/extraction dates, and date provenance. There
+  is no review-data download button; complete evidence stays in the
+  widget data.
 
 - strOutputLabel:
 
@@ -124,6 +135,12 @@ Widget_GroupOverview(
 - bDebug:
 
   `logical` Print debug messages? Default: `FALSE`.
+
+- dfResultsHistory:
+
+  Optional persisted results across snapshots. Used only for dated
+  drilldown flag history within 90 days of its assessment date; defaults
+  to `dfResults`. Does not recalculate reported scores.
 
 - ...:
 

@@ -99,6 +99,45 @@ make_comparison_detail <- function(results) {
   site_kri
 }
 
+test_that("dated drilldown retains flagged snapshots across the 90-day history (#63)", {
+  assessment <- as.Date("2026-11-05")
+  results <- data.frame(
+    StudyID = "STUDY", SnapshotDate = assessment, GroupLevel = "Site", GroupID = "1001",
+    MetricID = c("Analysis_kri0001", "Analysis_kri0002", "Analysis_srs0001", "Analysis_srs0002"),
+    Flag = c(0, 2, NA, NA), Numerator = 1, Denominator = 4, Metric = 25, Score = 25
+  )
+  history <- data.frame(
+    StudyID = "STUDY", SnapshotDate = assessment - c(20, 90, 91, -1),
+    GroupLevel = "Site", GroupID = "1001",
+    MetricID = c("Analysis_kri0001", "Analysis_kri0003", "Analysis_kri0004", "Analysis_kri0005"),
+    Flag = c(-2, 1, 2, 2)
+  )
+  history <- dplyr::bind_rows(results[1:2, names(history)], history)
+  detail <- data.frame(
+    StudyID = "STUDY", SnapshotDate = assessment, GroupLevel = "Site", GroupID = "1001",
+    MetricID = results$MetricID[1:2], Flag = c(0, 2), Weight = c(0, 4), EffectiveWeight = c(0, 4),
+    ActionState = c("Closed Action", "Awaiting Triage"),
+    LastActionedDate = as.Date(c("2026-10-25", NA)), ActionWindowDays = 90, ActionAsOfDate = assessment
+  )
+  widget <- Widget_GroupOverview(
+    results, gsm.core::reportingMetrics, gsm.core::reportingGroups,
+    strGroupLevel = "Site", strComparisonRiskMetric = "Analysis_srs0002",
+    dfComparisonRiskDetail = detail, dfResultsHistory = history
+  )
+  enriched <- jsonlite::fromJSON(widget$x$dfComparisonRiskDetail)
+  expect_equal(nrow(enriched), 3L)
+  green <- enriched[enriched$MetricID == "Analysis_kri0001", ]
+  expect_equal(green$Flag, 0)
+  expect_equal(green$LastFlaggedFlag, -2)
+  expect_equal(green$LastFlaggedDate, "2026-10-16")
+  expect_equal(green$DaysSinceFlag, 20)
+  retired <- enriched[enriched$MetricID == "Analysis_kri0003", ]
+  expect_equal(retired$DaysSinceFlag, 90)
+  expect_equal(retired$Weight, 0)
+  expect_equal(retired$EffectiveWeight, 0)
+  expect_false(any(enriched$MetricID %in% c("Analysis_kri0004", "Analysis_kri0005")))
+})
+
 test_that("Widget_GroupOverview forwards comparison risk detail (#63)", {
   results <- gsm.core::reportingResults
   adjusted <- results[results$MetricID == "Analysis_srs0001", , drop = FALSE]

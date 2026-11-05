@@ -34,14 +34,26 @@
 #'   independent of decision coverage and does not imply risk resolution.
 #'   A single "Highlight actions within 90 days" checkbox, on by default,
 #'   toggles only the border and retains its state through sorting and redraws.
-#'   All cells and detail rows remain visible, including zero-weight results.
+#'   All matrix cells remain visible. The expanded breakdown includes KRIs
+#'   flagged or actioned in any snapshot within the inclusive 90-day history,
+#'   including findings that are now green and historical-only results.
+#'   `dfResultsHistory` supplies flag snapshots; explicit action dates supply
+#'   action recency. Items with neither recent evidence are omitted.
 #'   There are no window, hide, or score-exclusion controls; reported scores,
 #'   flag colors, and contribution fields are never changed by the widget.
-#'   Borders survive sorting and redraws. The JSON download includes visible
-#'   sites, reported scores, per-KRI evidence, and separate score/highlight
-#'   windows. Source IDs, assessment and extraction dates, and date provenance
-#'   are displayed when supplied.
+#'   Borders survive sorting and redraws. The dated breakdown has six columns:
+#'   KRI, Flag, Action state, Last Addressed, Days Ago, and Counted. Its Flag is
+#'   the latest flagged value in the window, or the reviewed flag for a recent
+#'   action; the main matrix keeps the current flag. Counted reflects the
+#'   unchanged reported contribution. Rows sort by newest Last Addressed date,
+#'   then descending absolute displayed flag, then natural KRI number; undated
+#'   rows come last. The tooltip retains the flag snapshot,
+#'   current flag, assessment/extraction dates, and date provenance. There is
+#'   no review-data download button; complete evidence stays in the widget data.
 #' @param ... `any` Additional chart configuration settings.
+#' @param dfResultsHistory Optional persisted results across snapshots. Used
+#'   only for dated drilldown flag history within 90 days of its assessment
+#'   date; defaults to `dfResults`. Does not recalculate reported scores.
 #'
 #' @examples
 #' # site-level report
@@ -99,6 +111,7 @@ Widget_GroupOverview <- function(
     " Overview"
   ),
   bDebug = FALSE,
+  dfResultsHistory = NULL,
   ...
 ) {
   gsm.core::stop_if(
@@ -183,6 +196,60 @@ Widget_GroupOverview <- function(
   if (is.null(strComparisonRiskMetric) ||
       !strComparisonRiskMetric %in% dfResults$MetricID) {
     dfComparisonRiskDetail <- NULL
+  }
+
+  if (!is.null(dfComparisonRiskDetail) && nrow(dfComparisonRiskDetail) > 0L &&
+    "ActionWindowDays" %in% names(dfComparisonRiskDetail) &&
+    (!is.null(dfResultsHistory) ||
+      !all(c("LastFlaggedDate", "LastFlaggedFlag", "DaysSinceFlag") %in% names(dfComparisonRiskDetail)))) {
+    history <- if (is.null(dfResultsHistory)) dfResults else dfResultsHistory
+    history_columns <- c("GroupID", "MetricID", "SnapshotDate", "Flag")
+    gsm.core::stop_if(
+      cnd = !is.data.frame(history) || !all(history_columns %in% names(history)) ||
+        !inherits(history$SnapshotDate, "Date") || !is.numeric(history$Flag),
+      "dfResultsHistory must contain GroupID, MetricID, Date SnapshotDate, and numeric Flag"
+    )
+    assessment <- if ("ActionAsOfDate" %in% names(dfComparisonRiskDetail)) {
+      assessment_dates <- as.Date(dfComparisonRiskDetail$ActionAsOfDate)
+      unique(assessment_dates[!is.na(assessment_dates)])
+    } else {
+      max(as.Date(dfResults$SnapshotDate), na.rm = TRUE)
+    }
+    gsm.core::stop_if(
+      cnd = length(assessment) != 1L || is.na(assessment) || !is.finite(as.numeric(assessment)),
+      "Dated drilldown requires one non-missing assessment date"
+    )
+    if ("GroupLevel" %in% names(history)) history <- history[history$GroupLevel == strGroupLevel, ]
+    if ("StudyID" %in% names(history) && "StudyID" %in% names(dfResults)) {
+      history <- history[history$StudyID %in% unique(dfResults$StudyID), ]
+    }
+    join_keys <- intersect(
+      c("StudyID", "GroupLevel", "GroupID", "MetricID"),
+      intersect(names(history), names(dfComparisonRiskDetail))
+    )
+    flagged <- history %>%
+      dplyr::filter(
+        !is.na(.data$Flag), is.finite(.data$Flag), .data$Flag != 0,
+        .data$SnapshotDate <= assessment, .data$SnapshotDate >= assessment - 90,
+        .data$SnapshotDate <= max(dfResults$SnapshotDate, na.rm = TRUE)
+      ) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(join_keys))) %>%
+      dplyr::slice_max(.data$SnapshotDate, n = 1L, with_ties = FALSE) %>%
+      dplyr::ungroup() %>%
+      dplyr::select(dplyr::all_of(join_keys), LastFlaggedDate = "SnapshotDate", LastFlaggedFlag = "Flag") %>%
+      dplyr::mutate(DaysSinceFlag = as.integer(assessment - .data$LastFlaggedDate))
+    dfComparisonRiskDetail <- dfComparisonRiskDetail %>%
+      dplyr::select(-dplyr::any_of(c("LastFlaggedDate", "LastFlaggedFlag", "DaysSinceFlag"))) %>%
+      dplyr::mutate(HasCurrentDetail = TRUE) %>%
+      dplyr::full_join(flagged, by = join_keys) %>%
+      dplyr::mutate(
+        Weight = dplyr::if_else(is.na(.data$HasCurrentDetail), 0, .data$Weight),
+        EffectiveWeight = dplyr::if_else(is.na(.data$HasCurrentDetail), 0, .data$EffectiveWeight),
+        ActionState = dplyr::coalesce(.data$ActionState, "Not recorded"),
+        ActionWindowDays = dplyr::coalesce(.data$ActionWindowDays, 90)
+      ) %>%
+      dplyr::select(-"HasCurrentDetail")
+    dfComparisonRiskDetail$ActionAsOfDate <- assessment
   }
 
   # forward options using x

@@ -132,7 +132,7 @@ test('90-day action borders mark only the specific site KRI without score contro
     document.body.replaceChildren(host);
     const detail = ['1001', '1002'].flatMap((GroupID) => [
       {
-        GroupID, MetricID: 'Analysis_kri0001', Flag: 2,
+        GroupID, MetricID: 'Analysis_kri0001', Flag: GroupID === '1001' ? 1 : 2,
         Weight: 4, WeightMax: 4,
         EffectiveWeight: GroupID === '1001' ? 0 : 4,
         LastActionedDate: '2026-10-15', DaysSinceAction: 20,
@@ -158,16 +158,40 @@ test('90-day action borders mark only the specific site KRI without score contro
         LastActionedDate: GroupID === '1001' ? '2026-10-15' : '2026-11-05',
         DaysSinceAction: GroupID === '1001' ? 20 : -1,
         DecisionCoversFinding: false, ActionState: 'Open Action',
-        ActionReason: 'Decision coverage unknown', ActionAsOfDate: '2026-11-04', ActionWindowDays: 90
+        ActionReason: 'Decision coverage unknown', ActionAsOfDate: '2026-11-04', ActionWindowDays: 90,
+        LastFlaggedDate: GroupID === '1001' ? '2026-10-15' : null,
+        LastFlaggedFlag: GroupID === '1001' ? -2 : null,
+        DaysSinceFlag: GroupID === '1001' ? 20 : null
       },
       {
-        GroupID, MetricID: 'Analysis_kri0004', Flag: 0,
+        GroupID, MetricID: 'Analysis_kri0004', Flag: null,
         Weight: 0, WeightMax: 0, EffectiveWeight: 0,
         LastActionedDate: null, DaysSinceAction: null,
         DecisionCoversFinding: false, ActionState: null,
         ActionReason: 'Unknown', ActionAsOfDate: '2026-11-04', ActionWindowDays: 90
+      },
+      {
+        GroupID, MetricID: 'Analysis_kri0005', Flag: -1,
+        Weight: 0, WeightMax: 0, EffectiveWeight: 0,
+        LastActionedDate: null, DaysSinceAction: null,
+        DecisionCoversFinding: false, ActionState: null,
+        ActionReason: 'Unknown', ActionAsOfDate: '2026-11-04', ActionWindowDays: 90
+      },
+      {
+        GroupID, MetricID: 'Analysis_kri0006', Flag: 0,
+        Weight: 0, WeightMax: 0, EffectiveWeight: 0,
+        LastActionedDate: 'NA', DaysSinceAction: null, ActionState: 'Not flagged',
+        LastFlaggedDate: '2026-08-06', LastFlaggedFlag: 1, DaysSinceFlag: 90,
+        ActionAsOfDate: '2026-11-04', ActionWindowDays: 90
+      },
+      {
+        GroupID, MetricID: 'Analysis_kri0007', Flag: 0,
+        Weight: 0, WeightMax: 0, EffectiveWeight: 0,
+        LastActionedDate: null, DaysSinceAction: null, ActionState: 'Not recorded',
+        LastFlaggedDate: '2026-08-05', LastFlaggedFlag: 2, DaysSinceFlag: 91,
+        ActionAsOfDate: '2026-11-04', ActionWindowDays: 90
       }
-    ]);
+    ].reverse()).map((row) => ({ SnapshotDate: '2026-11-04', ...row }));
     const results = detail.map((row) => ({
       ...row, GroupLevel: 'Site', Numerator: 1, Denominator: 2,
       Metric: 0.5, Score: row.Flag
@@ -182,7 +206,7 @@ test('90-day action borders mark only the specific site KRI without score contro
         Metric: GroupID === '1001' ? 50 : 75,
         Score: GroupID === '1001' ? 50 : 75, Flag: null });
     });
-    const metrics = [1, 2, 3, 4].map((index) => ({
+    const metrics = [1, 2, 3, 4, 5, 6, 7].map((index) => ({
       MetricID: `Analysis_kri000${index}`, Metric: `KRI ${index}`,
       Abbreviation: `KRI ${index}`, GroupLevel: 'Site', Type: 'Analysis',
       Priority: index, Numerator: 'Events', Denominator: 'Participants',
@@ -212,6 +236,7 @@ test('90-day action borders mark only the specific site KRI without score contro
     .evaluateAll((cells) => Object.fromEntries(cells.map((cell) => [cell.__data__.GroupID, cell.textContent])));
   await expect(overview.getByRole('spinbutton', { name: 'Action window (days)' })).toHaveCount(0);
   await expect(overview.getByRole('checkbox')).toHaveCount(1);
+  await expect(overview.getByRole('button', { name: 'Download review data' })).toHaveCount(0);
   const highlightToggle = overview.getByRole('checkbox', { name: 'Highlight actions within 90 days' });
   await expect(highlightToggle).toBeChecked();
   expect(await values()).toEqual({ '1001': '50', '1002': '75' });
@@ -236,8 +261,19 @@ test('90-day action borders mark only the specific site KRI without score contro
   const baseline = await overview.locator('td.group-overview--siteRiskScore').allTextContents();
   await overview.locator('td.group-overview--comparisonRiskScore').first().click();
   await expect(overview.locator('.group-overview--comparison-detail')).toContainText('2026-10-15');
-  await expect(overview.locator('.group-overview--comparison-detail')).toContainText('KRI 4');
-  await expect(overview.locator('td.group-overview--metric')).toHaveCount(8);
+  expect(await overview.locator('.group-overview--comparison-detail [role="row"]').evaluateAll((rows) =>
+    rows.map((row) => row.dataset.metricId)
+  )).toEqual(['Analysis_kri0003', 'Analysis_kri0001', 'Analysis_kri0002', 'Analysis_kri0005', 'Analysis_kri0006']);
+  await expect(overview.locator('.group-overview--comparison-detail [data-metric-id="Analysis_kri0003"] [role="cell"]').nth(1))
+    .toHaveText('-2');
+  await expect(overview.locator('.group-overview--comparison-detail [data-metric-id="Analysis_kri0006"] [role="cell"]').nth(2))
+    .toHaveText('Not recorded');
+  expect(await overview.locator('.group-overview--comparison-detail [role="columnheader"]').allTextContents())
+    .toEqual(['KRI', 'Flag', 'Action state', 'Last Addressed', 'Days Ago', 'Counted']);
+  expect(await overview.locator('.group-overview--comparison-detail [role="row"]').evaluateAll((rows) =>
+    rows.every((row) => row.children.length === 6)
+  )).toBe(true);
+  await expect(overview.locator('td.group-overview--metric')).toHaveCount(14);
   const detailText = await overview.locator('.group-overview--comparison-detail').innerText();
   await highlightToggle.uncheck();
   await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(0);
@@ -259,16 +295,9 @@ test('90-day action borders mark only the specific site KRI without score contro
   expect((await overview.locator('td.group-overview--siteRiskScore').allTextContents()).sort())
     .toEqual(baseline.sort());
   expect(await flags()).toEqual(originalFlags);
-  const downloadPromise = page.waitForEvent('download');
-  await overview.getByRole('button', { name: 'Download review data' }).click();
-  const download = await downloadPromise;
-  const exported = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
-  expect(exported.settings).toMatchObject({ actionWindowDays: 90, highlightWindowDays: 90, highlightRecentActions: true });
-  expect(exported.groups.find((group) => group.GroupID === '1001'))
-    .toMatchObject({ OriginalRiskScore: 100, ReportedPriorityScore: 50, ReviewPriorityScore: 50 });
   await overview.screenshot({ path: test.info().outputPath('action-window-desktop.png') });
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(overview.getByRole('button', { name: 'Download review data' })).toBeVisible();
+  await expect(highlightToggle).toBeVisible();
   expect(await overview.locator('.group-overview--action-controls').evaluate((controls) =>
     [...controls.children].every((control) => control.getBoundingClientRect().right <= controls.getBoundingClientRect().right + 1)
   )).toBe(true);

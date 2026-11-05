@@ -25,8 +25,11 @@ hosting both of its chart generations against one vendored gsm.viz 2.4.1 bundle.
   resolution. One default-on checkbox toggles highlighting only. There are no
   window, hide, or score-exclusion controls. Reported
   scores, flag colors, and contributions remain unchanged. Borders survive
-  redraws, the accessible scroll region supports mobile tables, and JSON
-  downloads retain reported scores and complete per-KRI evidence (#63).
+  redraws and the accessible scroll region supports mobile tables. The compact
+  six-column drilldown includes KRIs flagged or actioned in the last 90 days,
+  using optional `dfResultsHistory` for prior flags, including now-green and
+  historical-only findings. The download control is removed; reported scores
+  and complete supplied evidence remain unchanged (#63).
 * Takes gsm.core (>= 1.3.1) in Imports, alongside dplyr, fontawesome, lifecycle,
   magrittr, purrr, rlang, and tidyr.
 

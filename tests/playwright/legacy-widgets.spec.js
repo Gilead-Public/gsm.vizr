@@ -211,7 +211,9 @@ test('90-day action borders mark only the specific site KRI without score contro
   const values = () => overview.locator('td.group-overview--comparisonRiskScore')
     .evaluateAll((cells) => Object.fromEntries(cells.map((cell) => [cell.__data__.GroupID, cell.textContent])));
   await expect(overview.getByRole('spinbutton', { name: 'Action window (days)' })).toHaveCount(0);
-  await expect(overview.getByRole('checkbox')).toHaveCount(0);
+  await expect(overview.getByRole('checkbox')).toHaveCount(1);
+  const highlightToggle = overview.getByRole('checkbox', { name: 'Highlight actions within 90 days' });
+  await expect(highlightToggle).toBeChecked();
   expect(await values()).toEqual({ '1001': '50', '1002': '75' });
   const expectedBorders = [
     '1001:Analysis_kri0001', '1001:Analysis_kri0003',
@@ -221,9 +223,8 @@ test('90-day action borders mark only the specific site KRI without score contro
     .evaluateAll((cells) => cells.map((cell) => `${cell.__data__.GroupID}:${cell.__data__.MetricID}`).sort());
   expect(await borderedCells()).toEqual(expectedBorders);
   await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(4);
-  expect(await overview.locator('td.group-overview--recent-action').first().evaluate((cell) =>
-    getComputedStyle(cell).boxShadow !== 'none'
-  )).toBe(true);
+  await expect(overview.locator('td.group-overview--recent-action').first())
+    .toHaveCSS('box-shadow', 'rgb(102, 102, 102) 0px 0px 0px 1px inset');
   await expect(overview.locator('td.group-overview--recent-action').first())
     .toHaveAttribute('title', /within 90 days.*2026-10-15/);
   expect(await overview.locator('td.group-overview--metric').evaluateAll((cells) =>
@@ -237,11 +238,22 @@ test('90-day action borders mark only the specific site KRI without score contro
   await expect(overview.locator('.group-overview--comparison-detail')).toContainText('2026-10-15');
   await expect(overview.locator('.group-overview--comparison-detail')).toContainText('KRI 4');
   await expect(overview.locator('td.group-overview--metric')).toHaveCount(8);
+  const detailText = await overview.locator('.group-overview--comparison-detail').innerText();
+  await highlightToggle.uncheck();
+  await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(0);
+  expect(await overview.locator('td.group-overview--metric').evaluateAll((cells) =>
+    cells.every((cell) => getComputedStyle(cell).boxShadow === 'none')
+  )).toBe(true);
+  expect(await values()).toEqual({ '1001': '50', '1002': '75' });
+  expect(await overview.locator('.group-overview--comparison-detail').innerText()).toBe(detailText);
   await overview.getByRole('columnheader', { name: 'Review Priority Score', exact: true }).click();
   await overview.getByRole('columnheader', { name: 'Review Priority Score', exact: true }).click();
   await expect(overview.locator('td.group-overview--comparisonRiskScore').first()).toHaveText('50');
   await page.evaluate(() => window.actionWindowRedraw());
   expect(await values()).toEqual({ '1001': '50', '1002': '75' });
+  await expect(highlightToggle).not.toBeChecked();
+  await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(0);
+  await highlightToggle.check();
   expect(await borderedCells()).toEqual(expectedBorders);
   await expect(overview.getByRole('columnheader', { name: 'Review Priority Score', exact: true })).toBeVisible();
   expect((await overview.locator('td.group-overview--siteRiskScore').allTextContents()).sort())
@@ -251,7 +263,7 @@ test('90-day action borders mark only the specific site KRI without score contro
   await overview.getByRole('button', { name: 'Download review data' }).click();
   const download = await downloadPromise;
   const exported = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
-  expect(exported.settings).toMatchObject({ actionWindowDays: 90, highlightWindowDays: 90 });
+  expect(exported.settings).toMatchObject({ actionWindowDays: 90, highlightWindowDays: 90, highlightRecentActions: true });
   expect(exported.groups.find((group) => group.GroupID === '1001'))
     .toMatchObject({ OriginalRiskScore: 100, ReportedPriorityScore: 50, ReviewPriorityScore: 50 });
   await overview.screenshot({ path: test.info().outputPath('action-window-desktop.png') });

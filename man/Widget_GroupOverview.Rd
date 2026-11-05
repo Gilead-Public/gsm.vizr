@@ -68,10 +68,12 @@ row under that group listing its KRIs, their action state, and whether
 each counts toward the score. Ignored when the second metric is absent
 from \code{dfResults}. Default: NULL.
 Dated detail with \code{ActionWindowDays}, \code{DaysSinceAction},
-and \code{LastActionedDate} adds a blue inset border to each specific site/KRI
+and \code{LastActionedDate} adds a thin dark-grey inset border to each site/KRI
 cell with an action recorded 0 through 90 days before the assessment date.
 The tooltip includes the action date and age. This recency indicator is
 independent of decision coverage and does not imply risk resolution.
+A single "Highlight actions within 90 days" checkbox, on by default,
+toggles only the border and retains its state through sorting and redraws.
 All cells and detail rows remain visible, including zero-weight results.
 There are no window, hide, or score-exclusion controls; reported scores,
 flag colors, and contribution fields are never changed by the widget.

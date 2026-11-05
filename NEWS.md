@@ -19,10 +19,11 @@ hosting both of its chart generations against one vendored gsm.viz 2.4.1 bundle.
   With the optional `dfComparisonRiskDetail`, clicking a score in that column
   lists the KRIs behind it, their action state, and whether each counts toward
   the score.
-* Dated comparison detail adds a blue inset border to each specific site/KRI
+* Dated comparison detail adds a thin dark-grey inset border to each site/KRI
   cell with a recorded action within an inclusive 90-day window. The tooltip
   shows the date and age; borders do not imply decision coverage or risk
-  resolution. There are no window, hide, or score-exclusion controls. Reported
+  resolution. One default-on checkbox toggles highlighting only. There are no
+  window, hide, or score-exclusion controls. Reported
   scores, flag colors, and contributions remain unchanged. Borders survive
   redraws, the accessible scroll region supports mobile tables, and JSON
   downloads retain reported scores and complete per-KRI evidence (#63).

@@ -42,6 +42,7 @@ const addComparisonRiskDetail = function (el, input) {
     const datedDetail = detail.find((row) => !isMissing(row.ActionWindowDays));
     const dateWindowMode = datedDetail !== undefined;
     const windowDays = 90;
+    let highlightRecentActions = true;
     let selectedGroup = null;
     let controls = null;
     let tableScroll = null;
@@ -158,8 +159,9 @@ const addComparisonRiskDetail = function (el, input) {
             const datum = cell.__data__;
             const row = datum && (detailByGroup[datum.GroupID] || []).find((item) => item.MetricID === datum.MetricID);
             const recent = row && isRecent(row);
-            cell.classList.toggle('group-overview--recent-action', Boolean(recent));
-            cell.style.boxShadow = recent ? 'inset 0 0 0 2px #2563eb' : '';
+            const highlighted = highlightRecentActions && recent;
+            cell.classList.toggle('group-overview--recent-action', Boolean(highlighted));
+            cell.style.boxShadow = highlighted ? 'inset 0 0 0 1px #666666' : '';
             if (row) {
                 const recency = recent
                     ? `Action recorded within 90 days: ${row.LastActionedDate} (${row.DaysSinceAction} days before ${row.ActionAsOfDate || 'assessment'}).`
@@ -212,6 +214,17 @@ const addComparisonRiskDetail = function (el, input) {
         controls = document.createElement('div');
         controls.className = 'group-overview--action-controls';
         controls.style.cssText = 'display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 0;';
+        const highlightLabel = document.createElement('label');
+        highlightLabel.style.cssText = 'max-width: 100%; min-width: 0;';
+        const highlightCheckbox = document.createElement('input');
+        highlightCheckbox.type = 'checkbox';
+        highlightCheckbox.checked = highlightRecentActions;
+        highlightCheckbox.addEventListener('change', () => {
+            highlightRecentActions = highlightCheckbox.checked;
+            refresh(false);
+        });
+        highlightLabel.append(highlightCheckbox, document.createTextNode(' Highlight actions within 90 days'));
+        controls.appendChild(highlightLabel);
         const downloadButton = document.createElement('button');
         downloadButton.type = 'button';
         downloadButton.textContent = 'Download review data';
@@ -223,6 +236,7 @@ const addComparisonRiskDetail = function (el, input) {
                 settings: {
                     actionWindowDays: datedDetail.ActionWindowDays,
                     highlightWindowDays: windowDays,
+                    highlightRecentActions,
                     actionAsOfDate: datedDetail.ActionAsOfDate
                 },
                 groups: Object.entries(comparisonResults)

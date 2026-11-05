@@ -1,5 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const path = require('path');
+const fs = require('fs');
 
 const fixture = (name) => 'file://' + path.resolve(__dirname, 'fixture', name);
 const ISOLATED = fixture('legacy-widgets.html');
@@ -88,6 +89,225 @@ test('two widgets for the same metric keep unique element ids', async ({ page })
   expect(ids.length).toBe(2);
   expect(new Set(ids).size).toBe(2); // data-derived prefix, unique suffix
   ids.forEach((id) => expect(id).toMatch(/^barChart--Analysis_kri0001_/));
+});
+
+test('GroupOverview adds comparison score immediately after Risk Score', async ({ page }) => {
+  await page.goto(ISOLATED);
+
+  const overview = page.locator('#page-group-overview-comparison');
+  await expect(overview.locator('table.group-overview')).toBeVisible();
+
+  const headers = await overview.locator('th').allInnerTexts();
+  const riskIndex = headers.indexOf('Risk Score');
+  expect(riskIndex).toBeGreaterThan(-1);
+  expect(headers[riskIndex + 1]).toBe('Adjusted Risk Score');
+
+  const firstRow = overview.locator('tbody tr').first();
+  const baseline = Number(await firstRow.locator('td').nth(riskIndex).innerText());
+  const adjusted = Number(await firstRow.locator('td').nth(riskIndex + 1).innerText());
+  expect(Number.isFinite(baseline)).toBe(true);
+  expect(Math.abs(adjusted - baseline / 2)).toBeLessThanOrEqual(0.5);
+});
+
+test('GroupOverview keeps its original columns when comparison score is absent', async ({ page }) => {
+  await page.goto(ISOLATED);
+
+  const overview = page.locator('#page-group-overview-baseline');
+  await expect(overview.locator('table.group-overview')).toBeVisible();
+  await expect(
+    overview.locator('th', { hasText: 'Adjusted Risk Score' })
+  ).toHaveCount(0);
+});
+
+test('90-day action borders mark only the specific site KRI without score controls', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(ISOLATED);
+  const source = fs.readFileSync(path.resolve(
+    __dirname, '../../inst/htmlwidgets/lib/addComparisonRiskDetail.js'
+  ), 'utf8');
+  await page.evaluate((script) => {
+    const host = document.createElement('div');
+    host.id = 'action-window-overview';
+    document.body.replaceChildren(host);
+    const detail = ['1001', '1002'].flatMap((GroupID) => [
+      {
+        GroupID, MetricID: 'Analysis_kri0001', Flag: GroupID === '1001' ? 1 : 2,
+        Weight: 4, WeightMax: 4,
+        EffectiveWeight: GroupID === '1001' ? 0 : 4,
+        LastActionedDate: '2026-10-15', DaysSinceAction: 20,
+        DecisionCoversFinding: GroupID === '1001',
+        ActionState: 'Closed Action',
+        ActionReason: GroupID === '1001' ? 'Recently addressed' : 'Decision coverage unknown',
+        ActionAsOfDate: '2026-11-04', ActionWindowDays: 90,
+        ActionRiskSignalID: 'RS-older', ActionID: 'ACT-1'
+      },
+      {
+        GroupID, MetricID: 'Analysis_kri0002', Flag: GroupID === '1001' ? 2 : 1,
+        Weight: GroupID === '1001' ? 4 : 2, WeightMax: 4,
+        EffectiveWeight: GroupID === '1001' ? 4 : 2,
+        LastActionedDate: GroupID === '1001' ? '2026-08-05' : '2026-08-06',
+        DaysSinceAction: GroupID === '1001' ? 91 : 90,
+        DecisionCoversFinding: false, ActionState: 'No Action',
+        ActionReason: GroupID === '1001' ? 'Expired' : 'Decision coverage unknown',
+        ActionAsOfDate: '2026-11-04', ActionWindowDays: 90
+      },
+      {
+        GroupID, MetricID: 'Analysis_kri0003', Flag: 0,
+        Weight: 0, WeightMax: 0, EffectiveWeight: 0,
+        LastActionedDate: GroupID === '1001' ? '2026-10-15' : '2026-11-05',
+        DaysSinceAction: GroupID === '1001' ? 20 : -1,
+        DecisionCoversFinding: false, ActionState: 'Open Action',
+        ActionReason: 'Decision coverage unknown', ActionAsOfDate: '2026-11-04', ActionWindowDays: 90,
+        LastFlaggedDate: GroupID === '1001' ? '2026-10-15' : null,
+        LastFlaggedFlag: GroupID === '1001' ? -2 : null,
+        DaysSinceFlag: GroupID === '1001' ? 20 : null
+      },
+      {
+        GroupID, MetricID: 'Analysis_kri0004', Flag: null,
+        Weight: 0, WeightMax: 0, EffectiveWeight: 0,
+        LastActionedDate: null, DaysSinceAction: null,
+        DecisionCoversFinding: false, ActionState: null,
+        ActionReason: 'Unknown', ActionAsOfDate: '2026-11-04', ActionWindowDays: 90
+      },
+      {
+        GroupID, MetricID: 'Analysis_kri0005', Flag: -1,
+        Weight: 0, WeightMax: 0, EffectiveWeight: 0,
+        LastActionedDate: null, DaysSinceAction: null,
+        DecisionCoversFinding: false, ActionState: null,
+        ActionReason: 'Unknown', ActionAsOfDate: '2026-11-04', ActionWindowDays: 90
+      },
+      {
+        GroupID, MetricID: 'Analysis_kri0006', Flag: 0,
+        Weight: 0, WeightMax: 0, EffectiveWeight: 0,
+        LastActionedDate: 'NA', DaysSinceAction: null, ActionState: 'Not flagged',
+        LastFlaggedDate: '2026-08-06', LastFlaggedFlag: 1, DaysSinceFlag: 90,
+        ActionAsOfDate: '2026-11-04', ActionWindowDays: 90
+      },
+      {
+        GroupID, MetricID: 'Analysis_kri0007', Flag: 0,
+        Weight: 0, WeightMax: 0, EffectiveWeight: 0,
+        LastActionedDate: null, DaysSinceAction: null, ActionState: 'Not recorded',
+        LastFlaggedDate: '2026-08-05', LastFlaggedFlag: 2, DaysSinceFlag: 91,
+        ActionAsOfDate: '2026-11-04', ActionWindowDays: 90
+      }
+    ].reverse()).map((row) => ({ SnapshotDate: '2026-11-04', ...row }));
+    const results = detail.map((row) => ({
+      ...row, GroupLevel: 'Site', Numerator: 1, Denominator: 2,
+      Metric: 0.5, Score: row.Flag
+    }));
+    ['1001', '1002'].forEach((GroupID) => {
+      results.push({ GroupID, GroupLevel: 'Site', MetricID: 'Analysis_srs0001',
+        Numerator: GroupID === '1001' ? 8 : 6, Denominator: 8,
+        Metric: GroupID === '1001' ? 100 : 75,
+        Score: GroupID === '1001' ? 100 : 75, Flag: null });
+      results.push({ GroupID, GroupLevel: 'Site', MetricID: 'Analysis_srs0002',
+        Numerator: GroupID === '1001' ? 4 : 6, Denominator: 8,
+        Metric: GroupID === '1001' ? 50 : 75,
+        Score: GroupID === '1001' ? 50 : 75, Flag: null });
+    });
+    const metrics = [1, 2, 3, 4, 5, 6, 7].map((index) => ({
+      MetricID: `Analysis_kri000${index}`, Metric: `KRI ${index}`,
+      Abbreviation: `KRI ${index}`, GroupLevel: 'Site', Type: 'Analysis',
+      Priority: index, Numerator: 'Events', Denominator: 'Participants',
+      Score: 'Score', Threshold: '1,2'
+    }));
+    const input = {
+      dfResults: results, dfMetrics: metrics,
+      dfComparisonRiskDetail: detail, strComparisonRiskMetric: 'Analysis_srs0002',
+      strComparisonRiskLabel: 'Review Priority Score'
+    };
+    const instance = gsmViz.default.groupOverview(host, results, {
+      GroupLevel: 'Site', SiteRiskScoreMetricID: 'Analysis_srs0001',
+      ComparisonRiskScoreMetricID: 'Analysis_srs0002',
+      ComparisonRiskScoreLabel: 'Review Priority Score'
+    }, ['1001', '1002'].map((GroupID) => ({
+      GroupID, GroupLevel: 'Site', Param: 'InvestigatorLastName', Value: GroupID
+    })), metrics);
+    const attach = new Function(`${script}\nreturn addComparisonRiskDetail;`)();
+    window.actionBorderBackgrounds = [...host.querySelectorAll('td.group-overview--metric')]
+      .map((cell) => [cell.__data__.GroupID, cell.__data__.MetricID, getComputedStyle(cell).backgroundColor]).sort();
+    attach(host, input, instance);
+    window.actionWindowRedraw = () => instance.updateTable(results);
+  }, source);
+
+  const overview = page.locator('#action-window-overview');
+  const values = () => overview.locator('td.group-overview--comparisonRiskScore')
+    .evaluateAll((cells) => Object.fromEntries(cells.map((cell) => [cell.__data__.GroupID, cell.textContent])));
+  await expect(overview.getByRole('spinbutton', { name: 'Action window (days)' })).toHaveCount(0);
+  await expect(overview.getByRole('checkbox')).toHaveCount(1);
+  await expect(overview.getByRole('button', { name: 'Download review data' })).toHaveCount(0);
+  const highlightToggle = overview.getByRole('checkbox', { name: 'Highlight actions within 90 days' });
+  await expect(highlightToggle).toBeChecked();
+  expect(await values()).toEqual({ '1001': '50', '1002': '75' });
+  const expectedBorders = [
+    '1001:Analysis_kri0001', '1001:Analysis_kri0003',
+    '1002:Analysis_kri0001', '1002:Analysis_kri0002'
+  ];
+  const borderedCells = () => overview.locator('td.group-overview--recent-action')
+    .evaluateAll((cells) => cells.map((cell) => `${cell.__data__.GroupID}:${cell.__data__.MetricID}`).sort());
+  expect(await borderedCells()).toEqual(expectedBorders);
+  await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(4);
+  await expect(overview.locator('td.group-overview--recent-action').first())
+    .toHaveCSS('box-shadow', 'rgb(102, 102, 102) 0px 0px 0px 1px inset');
+  await expect(overview.locator('td.group-overview--recent-action').first())
+    .toHaveAttribute('title', /within 90 days.*2026-10-15/);
+  expect(await overview.locator('td.group-overview--metric').evaluateAll((cells) =>
+    cells.map((cell) => [cell.__data__.GroupID, cell.__data__.MetricID, getComputedStyle(cell).backgroundColor]).sort()
+  )).toEqual(await page.evaluate(() => window.actionBorderBackgrounds));
+  const flags = () => overview.locator('td.group-overview--metric')
+    .evaluateAll((cells) => cells.map((cell) => [cell.__data__.GroupID, cell.__data__.MetricID, cell.__data__.Flag]).sort());
+  const originalFlags = await flags();
+  const baseline = await overview.locator('td.group-overview--siteRiskScore').allTextContents();
+  await overview.locator('td.group-overview--comparisonRiskScore').first().click();
+  await expect(overview.locator('.group-overview--comparison-detail')).toContainText('2026-10-15');
+  expect(await overview.locator('.group-overview--comparison-detail [role="row"]').evaluateAll((rows) =>
+    rows.map((row) => row.dataset.metricId)
+  )).toEqual(['Analysis_kri0003', 'Analysis_kri0001', 'Analysis_kri0002', 'Analysis_kri0005', 'Analysis_kri0006']);
+  await expect(overview.locator('.group-overview--comparison-detail [data-metric-id="Analysis_kri0003"] [role="cell"]').nth(1))
+    .toHaveText('-2');
+  await expect(overview.locator('.group-overview--comparison-detail [data-metric-id="Analysis_kri0006"] [role="cell"]').nth(2))
+    .toHaveText('Not recorded');
+  expect(await overview.locator('.group-overview--comparison-detail [role="columnheader"]').allTextContents())
+    .toEqual(['KRI', 'Flag', 'Action state', 'Last Addressed', 'Days Ago', 'Counted']);
+  expect(await overview.locator('.group-overview--comparison-detail [role="row"]').evaluateAll((rows) =>
+    rows.every((row) => row.children.length === 6)
+  )).toBe(true);
+  await expect(overview.locator('td.group-overview--metric')).toHaveCount(14);
+  const detailText = await overview.locator('.group-overview--comparison-detail').innerText();
+  await highlightToggle.uncheck();
+  await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(0);
+  expect(await overview.locator('td.group-overview--metric').evaluateAll((cells) =>
+    cells.every((cell) => getComputedStyle(cell).boxShadow === 'none')
+  )).toBe(true);
+  expect(await values()).toEqual({ '1001': '50', '1002': '75' });
+  expect(await overview.locator('.group-overview--comparison-detail').innerText()).toBe(detailText);
+  await overview.getByRole('columnheader', { name: 'Review Priority Score', exact: true }).click();
+  await overview.getByRole('columnheader', { name: 'Review Priority Score', exact: true }).click();
+  await expect(overview.locator('td.group-overview--comparisonRiskScore').first()).toHaveText('50');
+  await page.evaluate(() => window.actionWindowRedraw());
+  expect(await values()).toEqual({ '1001': '50', '1002': '75' });
+  await expect(highlightToggle).not.toBeChecked();
+  await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(0);
+  await highlightToggle.check();
+  expect(await borderedCells()).toEqual(expectedBorders);
+  await expect(overview.getByRole('columnheader', { name: 'Review Priority Score', exact: true })).toBeVisible();
+  expect((await overview.locator('td.group-overview--siteRiskScore').allTextContents()).sort())
+    .toEqual(baseline.sort());
+  expect(await flags()).toEqual(originalFlags);
+  await overview.screenshot({ path: test.info().outputPath('action-window-desktop.png') });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(highlightToggle).toBeVisible();
+  expect(await overview.locator('.group-overview--action-controls').evaluate((controls) =>
+    [...controls.children].every((control) => control.getBoundingClientRect().right <= controls.getBoundingClientRect().right + 1)
+  )).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  const scrollRegion = overview.getByRole('region', { name: 'Site risk and review priority scores' });
+  expect(await scrollRegion.evaluate((region) => region.scrollWidth > region.clientWidth)).toBe(true);
+  await scrollRegion.evaluate((region) => { region.scrollLeft = region.scrollWidth; });
+  await expect(overview.locator('td.group-overview--recent-action').first()).toBeInViewport();
+  await overview.screenshot({ path: test.info().outputPath('action-window-mobile.png') });
+  expect(errors).toEqual([]);
 });
 
 // Labels and option values are plain data - GroupIDs, country names, outcome

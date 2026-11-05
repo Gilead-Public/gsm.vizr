@@ -15,7 +15,45 @@
 #' - 'amber': Groups with 1+ amber flag.
 #' @param strGroupLabelKey `character` Value for the group label key. Default: 'InvestigatorLastName'.
 #' @param strSiteRiskMetric `character` Metric ID for the site risk score. Default: 'Analysis_srs0001'.
+#' @param strComparisonRiskMetric `character` Optional metric ID for a second
+#'   risk score displayed immediately after the site risk score.
+#' @param strComparisonRiskLabel `character` Label for the comparison risk score
+#'   column. Default: 'Adjusted Risk Score'.
+#' @param dfComparisonRiskDetail `data.frame` Optional per-KRI detail behind the
+#'   comparison risk score, such as `gsm.kri::MakeActionRiskScoreDetail()`.
+#'   Requires columns `GroupID`, `MetricID`, `Weight`, `EffectiveWeight`, and
+#'   `ActionState`; `Flag` and `ActionSnapshotDate` are shown when present.
+#'   When supplied, clicking a score in the second risk score column opens a
+#'   row under that group listing its KRIs, their action state, and whether
+#'   each counts toward the score. Ignored when the second metric is absent
+#'   from `dfResults`. Default: NULL.
+#'   Dated detail with `ActionWindowDays`, `DaysSinceAction`,
+#'   and `LastActionedDate` adds a thin dark-grey inset border to each site/KRI
+#'   cell with an action recorded 0 through 90 days before the assessment date.
+#'   The tooltip includes the action date and age. This recency indicator is
+#'   independent of decision coverage and does not imply risk resolution.
+#'   A single "Highlight actions within 90 days" checkbox, on by default,
+#'   toggles only the border and retains its state through sorting and redraws.
+#'   All matrix cells remain visible. The expanded breakdown includes KRIs
+#'   flagged or actioned in any snapshot within the inclusive 90-day history,
+#'   including findings that are now green and historical-only results.
+#'   `dfResultsHistory` supplies flag snapshots; explicit action dates supply
+#'   action recency. Items with neither recent evidence are omitted.
+#'   There are no window, hide, or score-exclusion controls; reported scores,
+#'   flag colors, and contribution fields are never changed by the widget.
+#'   Borders survive sorting and redraws. The dated breakdown has six columns:
+#'   KRI, Flag, Action state, Last Addressed, Days Ago, and Counted. Its Flag is
+#'   the latest flagged value in the window, or the reviewed flag for a recent
+#'   action; the main matrix keeps the current flag. Counted reflects the
+#'   unchanged reported contribution. Rows sort by newest Last Addressed date,
+#'   then descending absolute displayed flag, then natural KRI number; undated
+#'   rows come last. The tooltip retains the flag snapshot,
+#'   current flag, assessment/extraction dates, and date provenance. There is
+#'   no review-data download button; complete evidence stays in the widget data.
 #' @param ... `any` Additional chart configuration settings.
+#' @param dfResultsHistory Optional persisted results across snapshots. Used
+#'   only for dated drilldown flag history within 90 days of its assessment
+#'   date; defaults to `dfResults`. Does not recalculate reported scores.
 #'
 #' @examples
 #' # site-level report
@@ -43,6 +81,16 @@
 #'   strGroupLevel = "Country"
 #' )
 #'
+#' # add a second score beside the existing Site Risk Score when available
+#' \dontrun{
+#' Widget_GroupOverview(
+#'   dfResults = results_with_srs0002,
+#'   dfMetrics = gsm.core::reportingMetrics,
+#'   dfGroups = gsm.core::reportingGroups,
+#'   strComparisonRiskMetric = "Analysis_srs0002"
+#' )
+#' }
+#'
 #' @export
 
 Widget_GroupOverview <- function(
@@ -53,6 +101,9 @@ Widget_GroupOverview <- function(
   strGroupSubset = "red",
   strGroupLabelKey = "InvestigatorLastName",
   strSiteRiskMetric = "Analysis_srs0001",
+  strComparisonRiskMetric = NULL,
+  strComparisonRiskLabel = "Adjusted Risk Score",
+  dfComparisonRiskDetail = NULL,
   strOutputLabel = paste0(
     fontawesome::fa("table", fill = "#337ab7"),
     "  ",
@@ -60,6 +111,7 @@ Widget_GroupOverview <- function(
     " Overview"
   ),
   bDebug = FALSE,
+  dfResultsHistory = NULL,
   ...
 ) {
   gsm.core::stop_if(
@@ -82,6 +134,28 @@ Widget_GroupOverview <- function(
     cnd = !is.character(strGroupLabelKey) && !is.null(strGroupLabelKey),
     "strGroupLabelKey is not a character or NULL"
   )
+  gsm.core::stop_if(
+    cnd = !is.null(strComparisonRiskMetric) &&
+      (!is.character(strComparisonRiskMetric) ||
+        length(strComparisonRiskMetric) != 1L ||
+        is.na(strComparisonRiskMetric) ||
+        !nzchar(strComparisonRiskMetric)),
+    "strComparisonRiskMetric is not NULL or a single non-empty character value"
+  )
+  gsm.core::stop_if(
+    cnd = !is.character(strComparisonRiskLabel) ||
+      length(strComparisonRiskLabel) != 1L ||
+      is.na(strComparisonRiskLabel) ||
+      !nzchar(strComparisonRiskLabel),
+    "strComparisonRiskLabel is not a single non-empty character value"
+  )
+  gsm.core::stop_if(
+    cnd = !is.null(dfComparisonRiskDetail) &&
+      (!is.data.frame(dfComparisonRiskDetail) ||
+        !all(c("GroupID", "MetricID", "Weight", "EffectiveWeight", "ActionState") %in%
+          names(dfComparisonRiskDetail))),
+    "dfComparisonRiskDetail is not NULL or a data.frame with GroupID, MetricID, Weight, EffectiveWeight, and ActionState columns"
+  )
   gsm.core::stop_if(cnd = !is.logical(bDebug), "bDebug is not a logical")
 
   # set strGroupLevel if NULL and dfMetrics is not NULL
@@ -96,7 +170,9 @@ Widget_GroupOverview <- function(
 
   ## don't include site risk score in dfMetrics, so it's not in the summary charts
   dfMetrics <- dfMetrics %>%
-    dplyr::filter(.data$MetricID != strSiteRiskMetric)
+    dplyr::filter(
+      !.data$MetricID %in% c(strSiteRiskMetric, strComparisonRiskMetric)
+    )
 
   ## update dfResults to include site risk weights when available
   if (any(!is.na(dfMetrics$RiskScoreWeight))) {
@@ -116,6 +192,66 @@ Widget_GroupOverview <- function(
       left_join(dfWeights, by = c("Flag", "MetricID"))
   }
 
+  # Detail only explains a comparison score that is actually displayed.
+  if (is.null(strComparisonRiskMetric) ||
+      !strComparisonRiskMetric %in% dfResults$MetricID) {
+    dfComparisonRiskDetail <- NULL
+  }
+
+  if (!is.null(dfComparisonRiskDetail) && nrow(dfComparisonRiskDetail) > 0L &&
+    "ActionWindowDays" %in% names(dfComparisonRiskDetail) &&
+    (!is.null(dfResultsHistory) ||
+      !all(c("LastFlaggedDate", "LastFlaggedFlag", "DaysSinceFlag") %in% names(dfComparisonRiskDetail)))) {
+    history <- if (is.null(dfResultsHistory)) dfResults else dfResultsHistory
+    history_columns <- c("GroupID", "MetricID", "SnapshotDate", "Flag")
+    gsm.core::stop_if(
+      cnd = !is.data.frame(history) || !all(history_columns %in% names(history)) ||
+        !inherits(history$SnapshotDate, "Date") || !is.numeric(history$Flag),
+      "dfResultsHistory must contain GroupID, MetricID, Date SnapshotDate, and numeric Flag"
+    )
+    assessment <- if ("ActionAsOfDate" %in% names(dfComparisonRiskDetail)) {
+      assessment_dates <- as.Date(dfComparisonRiskDetail$ActionAsOfDate)
+      unique(assessment_dates[!is.na(assessment_dates)])
+    } else {
+      max(as.Date(dfResults$SnapshotDate), na.rm = TRUE)
+    }
+    gsm.core::stop_if(
+      cnd = length(assessment) != 1L || is.na(assessment) || !is.finite(as.numeric(assessment)),
+      "Dated drilldown requires one non-missing assessment date"
+    )
+    if ("GroupLevel" %in% names(history)) history <- history[history$GroupLevel == strGroupLevel, ]
+    if ("StudyID" %in% names(history) && "StudyID" %in% names(dfResults)) {
+      history <- history[history$StudyID %in% unique(dfResults$StudyID), ]
+    }
+    join_keys <- intersect(
+      c("StudyID", "GroupLevel", "GroupID", "MetricID"),
+      intersect(names(history), names(dfComparisonRiskDetail))
+    )
+    flagged <- history %>%
+      dplyr::filter(
+        !is.na(.data$Flag), is.finite(.data$Flag), .data$Flag != 0,
+        .data$SnapshotDate <= assessment, .data$SnapshotDate >= assessment - 90,
+        .data$SnapshotDate <= max(dfResults$SnapshotDate, na.rm = TRUE)
+      ) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(join_keys))) %>%
+      dplyr::slice_max(.data$SnapshotDate, n = 1L, with_ties = FALSE) %>%
+      dplyr::ungroup() %>%
+      dplyr::select(dplyr::all_of(join_keys), LastFlaggedDate = "SnapshotDate", LastFlaggedFlag = "Flag") %>%
+      dplyr::mutate(DaysSinceFlag = as.integer(assessment - .data$LastFlaggedDate))
+    dfComparisonRiskDetail <- dfComparisonRiskDetail %>%
+      dplyr::select(-dplyr::any_of(c("LastFlaggedDate", "LastFlaggedFlag", "DaysSinceFlag"))) %>%
+      dplyr::mutate(HasCurrentDetail = TRUE) %>%
+      dplyr::full_join(flagged, by = join_keys) %>%
+      dplyr::mutate(
+        Weight = dplyr::if_else(is.na(.data$HasCurrentDetail), 0, .data$Weight),
+        EffectiveWeight = dplyr::if_else(is.na(.data$HasCurrentDetail), 0, .data$EffectiveWeight),
+        ActionState = dplyr::coalesce(.data$ActionState, "Not recorded"),
+        ActionWindowDays = dplyr::coalesce(.data$ActionWindowDays, 90)
+      ) %>%
+      dplyr::select(-"HasCurrentDetail")
+    dfComparisonRiskDetail$ActionAsOfDate <- assessment
+  }
+
   # forward options using x
   lInput <- list(
     dfResults = dfResults,
@@ -132,6 +268,9 @@ Widget_GroupOverview <- function(
     strGroupSubset = strGroupSubset,
     strGroupLabelKey = strGroupLabelKey,
     strSiteRiskMetric = strSiteRiskMetric,
+    strComparisonRiskMetric = strComparisonRiskMetric,
+    strComparisonRiskLabel = strComparisonRiskLabel,
+    dfComparisonRiskDetail = dfComparisonRiskDetail,
     bDebug = bDebug
   )
 

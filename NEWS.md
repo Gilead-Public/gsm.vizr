@@ -13,6 +13,23 @@ hosting both of its chart generations against one vendored gsm.viz 2.4.1 bundle.
 * Relocated the legacy KRI widget wrappers from gsm.kri (#4): `Widget_BarChart`,
   `Widget_ScatterPlot`, `Widget_TimeSeries`, `Widget_GroupOverview`, their Shiny
   bindings, `MakeChartConfig()`, and the shared widget-control JS/CSS.
+* Added optional comparison-risk-score support to `Widget_GroupOverview()`.
+  When the configured metric is present, its column appears immediately after
+  the existing Site Risk Score; the default layout remains unchanged (#63).
+  With the optional `dfComparisonRiskDetail`, clicking a score in that column
+  lists the KRIs behind it, their action state, and whether each counts toward
+  the score.
+* Dated comparison detail adds a thin dark-grey inset border to each site/KRI
+  cell with a recorded action within an inclusive 90-day window. The tooltip
+  shows the date and age; borders do not imply decision coverage or risk
+  resolution. One default-on checkbox toggles highlighting only. There are no
+  window, hide, or score-exclusion controls. Reported
+  scores, flag colors, and contributions remain unchanged. Borders survive
+  redraws and the accessible scroll region supports mobile tables. The compact
+  six-column drilldown includes KRIs flagged or actioned in the last 90 days,
+  using optional `dfResultsHistory` for prior flags, including now-green and
+  historical-only findings. The download control is removed; reported scores
+  and complete supplied evidence remain unchanged (#63).
 * Takes gsm.core (>= 1.3.1) in Imports, alongside dplyr, fontawesome, lifecycle,
   magrittr, purrr, rlang, and tidyr.
 

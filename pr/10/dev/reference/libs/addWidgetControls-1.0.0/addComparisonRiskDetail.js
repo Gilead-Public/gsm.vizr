@@ -12,7 +12,7 @@
  *
  * @returns {undefined}
  */
-const addComparisonRiskDetail = function (el, input, instance = null) {
+const addComparisonRiskDetail = function (el, input) {
     const detail = input.dfComparisonRiskDetail;
     const comparisonMetric = input.strComparisonRiskMetric;
     if (!Array.isArray(detail) || detail.length === 0 || !comparisonMetric) return;
@@ -41,28 +41,17 @@ const addComparisonRiskDetail = function (el, input, instance = null) {
 
     const datedDetail = detail.find((row) => !isMissing(row.ActionWindowDays));
     const dateWindowMode = datedDetail !== undefined;
-    const initialWindow = dateWindowMode ? Number(datedDetail.ActionWindowDays) : 90;
-    let windowDays = initialWindow;
-    let excludeAddressed = true;
-    let hideAddressed = false;
+    const windowDays = 90;
     let selectedGroup = null;
     let controls = null;
     let tableScroll = null;
-    const numerators = {};
-    const isRecent = (row) => !isMissing(row.DaysSinceAction) &&
+    const isRecent = (row) => dateWindowMode && !isMissing(row.LastActionedDate) &&
+        !isMissing(row.DaysSinceAction) &&
         Number.isFinite(Number(row.DaysSinceAction)) &&
         Number(row.DaysSinceAction) >= 0 && Number(row.DaysSinceAction) <= windowDays;
-    const isAddressed = (row) => dateWindowMode && isRecent(row) && row.DecisionCoversFinding === true;
-    const isPreview = () => dateWindowMode && (windowDays !== initialWindow || !excludeAddressed);
-    const effectiveWeight = (row) => dateWindowMode
-        ? (excludeAddressed && isAddressed(row) ? 0 : Number(row.Weight))
-        : Number(row.EffectiveWeight);
-    const actionReason = (row) => {
-        if (!dateWindowMode) return row.ActionState;
-        if (isAddressed(row)) return 'Recently addressed';
-        if (isRecent(row)) return row.ActionCoverageReason || row.ActionReason || 'Coverage unknown';
-        return isMissing(row.LastActionedDate) ? row.ActionRecency || 'Unknown' : 'Expired';
-    };
+    const actionReason = (row) => dateWindowMode
+        ? row.ActionReason || row.ActionCoverageReason || row.ActionRecency || 'Unknown'
+        : row.ActionState;
 
     const buildPanel = () => {
         const panel = document.createElement('div');
@@ -70,13 +59,12 @@ const addComparisonRiskDetail = function (el, input, instance = null) {
 
         const rows = (detailByGroup[selectedGroup] || [])
             .filter((row) => dateWindowMode || parseFloat(row.Weight) !== 0)
-            .filter((row) => !hideAddressed || !isAddressed(row))
             .sort((a, b) => parseFloat(b.Weight) - parseFloat(a.Weight));
 
         const heading = document.createElement('div');
         heading.style.cssText = 'font-weight: bold; margin-bottom: 6px;';
         heading.textContent =
-            `${selectedGroup}: ${input.strComparisonRiskLabel}${isPreview() ? ' (preview)' : ''} ${Math.round(scores[selectedGroup])}`;
+            `${selectedGroup}: ${input.strComparisonRiskLabel} ${Math.round(scores[selectedGroup])}`;
         panel.appendChild(heading);
 
         // A grid of divs rather than a nested table: the group overview selects
@@ -100,14 +88,14 @@ const addComparisonRiskDetail = function (el, input, instance = null) {
 
         rows.forEach((row) => {
             const weight = isMissing(row.Weight) ? NaN : Number(row.Weight);
-            const effective = effectiveWeight(row);
+            const effective = Number(row.EffectiveWeight);
             const counted = !Number.isFinite(weight) ? 'Not weighted' :
                 effective <= 0 ? 'No' : effective < weight ? 'Partly' : 'Yes';
             const line = document.createElement('div');
             line.setAttribute('role', 'row');
             line.dataset.metricId = row.MetricID;
             line.style.display = 'contents';
-            if (dateWindowMode ? isAddressed(row) : counted === 'No') line.style.color = '#666';
+            if (!dateWindowMode && counted === 'No') line.style.color = '#666';
             const values = [
                 metricLabels[row.MetricID] || row.MetricID,
                 isMissing(row.Flag) ? '-' : row.Flag,
@@ -166,17 +154,19 @@ const addComparisonRiskDetail = function (el, input, instance = null) {
             cell.setAttribute('aria-expanded', String(selectedGroup === datum.GroupID));
         });
         if (!dateWindowMode) return;
-        const header = [...el.querySelectorAll('th')]
-            .find((cell) => cell.__data__ && cell.__data__.valueKey === 'comparisonRiskScore');
-        if (header) header.textContent = `${input.strComparisonRiskLabel}${isPreview() ? ' (preview)' : ''}`;
         el.querySelectorAll('td.group-overview--metric').forEach((cell) => {
             const datum = cell.__data__;
             const row = datum && (detailByGroup[datum.GroupID] || []).find((item) => item.MetricID === datum.MetricID);
-            const addressed = row && isAddressed(row);
-            cell.classList.toggle('group-overview--recently-addressed', Boolean(addressed));
-            cell.style.backgroundColor = addressed ? '#f0f1f2' : '';
-            cell.style.visibility = addressed && hideAddressed ? 'hidden' : '';
-            if (row) cell.title = `${datum.tooltipContent || ''}\nLast addressed: ${row.LastActionedDate || '-'}; ${actionReason(row)}`;
+            const recent = row && isRecent(row);
+            cell.classList.toggle('group-overview--recent-action', Boolean(recent));
+            cell.style.boxShadow = recent ? 'inset 0 0 0 2px #2563eb' : '';
+            if (row) {
+                const recency = recent
+                    ? `Action recorded within 90 days: ${row.LastActionedDate} (${row.DaysSinceAction} days before ${row.ActionAsOfDate || 'assessment'}).`
+                    : `Last addressed: ${isMissing(row.LastActionedDate) ? '-' : row.LastActionedDate}.`;
+                cell.title = `${datum.tooltipContent || ''}\n${recency} ${actionReason(row)}`;
+                cell.setAttribute('aria-description', `${recency} ${actionReason(row)}`);
+            }
         });
     };
 
@@ -218,85 +208,22 @@ const addComparisonRiskDetail = function (el, input, instance = null) {
     el.addEventListener('keydown', keyboardDetail);
     el.addEventListener('click', beforeSort, true);
 
-    let originalUpdate = null;
-    if (dateWindowMode && instance) {
-        originalUpdate = instance.updateTable.bind(instance);
-        instance.updateTable = (results) => {
-            observer.disconnect();
-            originalUpdate(results.map((row) => row.MetricID === comparisonMetric ? {
-                ...row, Score: scores[row.GroupID], Metric: scores[row.GroupID],
-                Numerator: numerators[row.GroupID] ?? row.Numerator
-            } : row));
-            refresh(true);
-        };
-        const updateScores = () => {
-            Object.entries(comparisonResults).forEach(([groupID, result]) => {
-                const denominator = Number(result.Denominator);
-                const weighted = (detailByGroup[groupID] || []).filter((row) => !isMissing(row.Weight));
-                if (!(denominator > 0) || weighted.length === 0) return;
-                numerators[groupID] = weighted.reduce((sum, row) => sum + effectiveWeight(row), 0);
-                scores[groupID] = 100 * numerators[groupID] / denominator;
-            });
-            const visible = new Set([...el.querySelectorAll('td.group-overview--comparisonRiskScore')]
-                .map((cell) => cell.__data__.GroupID));
-            instance.updateTable(input.dfResults.filter((row) => visible.has(row.GroupID)));
-        };
+    if (dateWindowMode) {
         controls = document.createElement('div');
         controls.className = 'group-overview--action-controls';
         controls.style.cssText = 'display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 0;';
-        const windowLabel = document.createElement('label');
-        windowLabel.textContent = 'Action window (days) ';
-        const windowInput = document.createElement('input');
-        windowInput.type = 'number';
-        windowInput.min = '0';
-        windowInput.step = '1';
-        windowInput.value = String(windowDays);
-        windowInput.style.width = '6em';
-        windowInput.addEventListener('change', () => {
-            const value = Number(windowInput.value);
-            const valid = windowInput.value !== '' && Number.isSafeInteger(value) && value >= 0;
-            windowInput.setCustomValidity(valid ? '' : 'Enter a nonnegative whole number.');
-            if (!valid) {
-                windowInput.reportValidity();
-                return;
-            }
-            windowDays = value;
-            updateScores();
-        });
-        windowLabel.appendChild(windowInput);
-        controls.appendChild(windowLabel);
-        const addToggle = (text, checked, onChange) => {
-            const label = document.createElement('label');
-            label.style.cssText = 'max-width: 100%; min-width: 0;';
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.checked = checked;
-            checkbox.addEventListener('change', () => onChange(checkbox.checked));
-            label.append(checkbox, document.createTextNode(` ${text}`));
-            controls.appendChild(label);
-        };
-        addToggle('Hide recently addressed', false, (checked) => {
-            hideAddressed = checked;
-            refresh(true);
-        });
-        addToggle('Exclude recently addressed from priority score', true, (checked) => {
-            excludeAddressed = checked;
-            updateScores();
-        });
         const downloadButton = document.createElement('button');
         downloadButton.type = 'button';
         downloadButton.textContent = 'Download review data';
-        downloadButton.title = 'Download action evidence and current priority settings as JSON';
+        downloadButton.title = 'Download action evidence and reported risk scores as JSON';
         downloadButton.addEventListener('click', () => {
             const visible = new Set([...el.querySelectorAll('td.group-overview--comparisonRiskScore')]
                 .map((cell) => cell.__data__.GroupID));
             const payload = {
                 settings: {
-                    actionWindowDays: windowDays,
-                    actionAsOfDate: datedDetail.ActionAsOfDate,
-                    excludeRecentlyAddressed: excludeAddressed,
-                    hideRecentlyAddressed: hideAddressed,
-                    preview: isPreview()
+                    actionWindowDays: datedDetail.ActionWindowDays,
+                    highlightWindowDays: windowDays,
+                    actionAsOfDate: datedDetail.ActionAsOfDate
                 },
                 groups: Object.entries(comparisonResults)
                     .filter(([groupID]) => visible.has(groupID))
@@ -308,14 +235,12 @@ const addComparisonRiskDetail = function (el, input, instance = null) {
                             OriginalRiskScore: original ? Number(original.Score) : null,
                             ReportedPriorityScore: Number(result.Score),
                             ReviewPriorityScore: scores[groupID],
-                            Numerator: numerators[groupID] ?? Number(result.Numerator),
+                            Numerator: Number(result.Numerator),
                             Denominator: Number(result.Denominator),
                             KRIs: (detailByGroup[groupID] || []).map((row) => ({
                                 ...row,
-                                EffectiveWeight: effectiveWeight(row),
-                                RecentlyAddressed: isAddressed(row),
-                                ActionReason: actionReason(row),
-                                HiddenByFilter: hideAddressed && isAddressed(row)
+                                RecentAction: isRecent(row),
+                                ActionReason: actionReason(row)
                             }))
                         };
                     })
@@ -323,7 +248,7 @@ const addComparisonRiskDetail = function (el, input, instance = null) {
             const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
             const link = document.createElement('a');
             link.href = url;
-            link.download = `review-priority${isPreview() ? '-preview' : ''}.json`;
+            link.download = 'review-priority.json';
             link.click();
             setTimeout(() => URL.revokeObjectURL(url), 0);
         });
@@ -346,6 +271,5 @@ const addComparisonRiskDetail = function (el, input, instance = null) {
         el.removeEventListener('click', beforeSort, true);
         if (controls) controls.remove();
         if (tableScroll) tableScroll.replaceWith(...tableScroll.childNodes);
-        if (originalUpdate) instance.updateTable = originalUpdate;
     };
 };

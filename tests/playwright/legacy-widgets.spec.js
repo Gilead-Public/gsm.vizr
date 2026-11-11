@@ -191,7 +191,23 @@ test('90-day action borders mark only the specific site KRI without score contro
         LastFlaggedDate: '2026-08-05', LastFlaggedFlag: 2, DaysSinceFlag: 91,
         ActionAsOfDate: '2026-11-04', ActionWindowDays: 90
       }
-    ].reverse()).map((row) => ({ SnapshotDate: '2026-11-04', ...row }));
+    ].reverse()).map((row) => ({ StudyID: 'TEST-STUDY', SnapshotDate: '2026-11-04', GroupLevel: 'Site', ...row }));
+    const exportRow = detail.find((row) => row.GroupID === '1001' && row.MetricID === 'Analysis_kri0001');
+    exportRow.ActionedDateSource = 'ADO.Custom.SnapshotDate (proxy)';
+    exportRow.ActionDateIsProxy = true;
+    exportRow.SnapshotDecisionExcluded = true;
+    exportRow.SnapshotQuarantineBlocked = false;
+    exportRow.SnapshotDecisionReason = 'No Action, "reviewed"\nwithin window';
+    exportRow.ActionRiskSignalID = '00042';
+    exportRow.ActionID = '00043';
+    detail.find((row) => row.GroupID === '1001' && row.MetricID === 'Analysis_kri0003')
+      .SnapshotDecisionReason = '=HYPERLINK("https://example.invalid")';
+    detail.find((row) => row.GroupID === '1001' && row.MetricID === 'Analysis_kri0005')
+      .ActionedDateSource = '  +SUM(1,2)';
+    detail.find((row) => row.GroupID === '1001' && row.MetricID === 'Analysis_kri0006')
+      .SnapshotDecisionReason = '@SUM(1,2)';
+    detail.find((row) => row.GroupID === '1002' && row.MetricID === 'Analysis_kri0001')
+      .ActionedDateSource = '-formula-like-text';
     const results = detail.map((row) => ({
       ...row, GroupLevel: 'Site', Numerator: 1, Denominator: 2,
       Metric: 0.5, Score: row.Flag
@@ -236,9 +252,44 @@ test('90-day action borders mark only the specific site KRI without score contro
     .evaluateAll((cells) => Object.fromEntries(cells.map((cell) => [cell.__data__.GroupID, cell.textContent])));
   await expect(overview.getByRole('spinbutton', { name: 'Action window (days)' })).toHaveCount(0);
   await expect(overview.getByRole('checkbox')).toHaveCount(1);
-  await expect(overview.getByRole('button', { name: 'Download review data' })).toHaveCount(0);
+  await expect(overview.getByRole('button', { name: 'Download CSV' })).toBeVisible();
   const highlightToggle = overview.getByRole('checkbox', { name: 'Highlight actions within 90 days' });
   await expect(highlightToggle).toBeChecked();
+  const downloadCsv = async (name) => {
+    const pending = page.waitForEvent('download');
+    await overview.getByRole('button', { name: 'Download CSV' }).click();
+    const download = await pending;
+    expect(download.suggestedFilename()).toBe('risk-review_TEST-STUDY_2026-11-04.csv');
+    await download.saveAs(test.info().outputPath(name));
+    return fs.readFileSync(await download.path(), 'utf8');
+  };
+  const csv = await downloadCsv('risk-review.csv');
+  expect(csv.slice(1).split('\r\n')[0].split(',').map((name) => name.slice(1, -1))).toEqual([
+    'CSVSchemaVersion', 'StudyID', 'SnapshotDate', 'GroupLevel', 'GroupID', 'MetricID', 'MetricLabel',
+    'CurrentFlag', 'ReviewFlag', 'LastFlaggedDate', 'DaysSinceFlag', 'ActionState', 'ActionedFlag',
+    'LastAddressed', 'DaysAgo', 'ActionedDateSource', 'ActionDateIsProxy', 'ActionWindowDays',
+    'Weight', 'WeightMax', 'EffectiveWeight', 'Counted', 'ActionFactor', 'SnapshotDecisionExcluded',
+    'SnapshotQuarantineBlocked', 'DecisionReason', 'DecisionCoversFinding', 'SiteRiskScore',
+    'SiteRiskNumerator', 'SiteRiskDenominator', 'ComparisonRiskScore', 'ComparisonRiskNumerator',
+    'ComparisonRiskDenominator', 'ComparisonRiskMetricID', 'ComparisonRiskLabel', 'ActionPolicy',
+    'ActionAsOfDate', 'ActionExtractionDate', 'RiskSignalID', 'ActionID'
+  ]);
+  expect(csv.startsWith('\uFEFF"CSVSchemaVersion","StudyID","SnapshotDate","GroupLevel","GroupID","MetricID"')).toBe(true);
+  expect(csv).toContain('"LastAddressed","DaysAgo","ActionedDateSource","ActionDateIsProxy"');
+  expect(csv).toContain('"Weight","WeightMax","EffectiveWeight","Counted"');
+  expect(csv).toContain('"SnapshotDecisionExcluded","SnapshotQuarantineBlocked","DecisionReason"');
+  expect(csv).toContain('"SiteRiskScore","SiteRiskNumerator","SiteRiskDenominator","ComparisonRiskScore","ComparisonRiskNumerator","ComparisonRiskDenominator"');
+  expect(csv).toContain('"No Action, ""reviewed""\nwithin window"');
+  expect(csv).toContain('"\'=HYPERLINK(""https://example.invalid"")"');
+  expect(csv).toContain('"\'  +SUM(1,2)"');
+  expect(csv).toContain('"\'@SUM(1,2)"');
+  expect(csv).toContain('"\'-formula-like-text"');
+  expect(csv).toContain('"00042","00043"');
+  expect(csv).toContain('"1001","Analysis_kri0003","KRI 3",0,-2,');
+  expect(csv).toContain(',100,8,8,50,4,8,"Analysis_srs0002","Review Priority Score",');
+  expect(csv.match(/^1,"TEST-STUDY"/gm)).toHaveLength(9);
+  expect(csv).not.toContain('"Analysis_kri0007"');
+  expect(csv).not.toContain('"Analysis_kri0004"');
   expect(await values()).toEqual({ '1001': '50', '1002': '75' });
   const expectedBorders = [
     '1001:Analysis_kri0001', '1001:Analysis_kri0003',
@@ -276,6 +327,7 @@ test('90-day action borders mark only the specific site KRI without score contro
   await expect(overview.locator('td.group-overview--metric')).toHaveCount(14);
   const detailText = await overview.locator('.group-overview--comparison-detail').innerText();
   await highlightToggle.uncheck();
+  expect(await downloadCsv('risk-review-highlight-off.csv')).toBe(csv);
   await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(0);
   expect(await overview.locator('td.group-overview--metric').evaluateAll((cells) =>
     cells.every((cell) => getComputedStyle(cell).boxShadow === 'none')
@@ -286,6 +338,7 @@ test('90-day action borders mark only the specific site KRI without score contro
   await overview.getByRole('columnheader', { name: 'Review Priority Score', exact: true }).click();
   await expect(overview.locator('td.group-overview--comparisonRiskScore').first()).toHaveText('50');
   await page.evaluate(() => window.actionWindowRedraw());
+  expect(await downloadCsv('risk-review-redrawn.csv')).toBe(csv);
   expect(await values()).toEqual({ '1001': '50', '1002': '75' });
   await expect(highlightToggle).not.toBeChecked();
   await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(0);

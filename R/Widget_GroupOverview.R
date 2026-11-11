@@ -49,7 +49,14 @@
 #'   then descending absolute displayed flag, then natural KRI number; undated
 #'   rows come last. The tooltip retains the flag snapshot,
 #'   current flag, assessment/extraction dates, and date provenance. There is
-#'   no review-data download button; complete evidence stays in the widget data.
+#'   a Download CSV button exporting review rows across all supplied sites,
+#'   independent of table filters, the expanded site, and highlighting.
+#'   Schema version 1 contains stable IDs, current/review flags, ISO dates,
+#'   action provenance, weights, exclusion reasons, and full-precision reported
+#'   scores with their numerators/denominators. Missing values are blank.
+#'   UTF-8 CSV uses quoted text, escaped quotes, CRLF records, and a BOM;
+#'   potentially executable spreadsheet text is apostrophe-prefixed. Export
+#'   never recalculates scores or changes the supplied detail.
 #' @param ... `any` Additional chart configuration settings.
 #' @param dfResultsHistory Optional persisted results across snapshots. Used
 #'   only for dated drilldown flag history within 90 days of its assessment
@@ -271,6 +278,7 @@ Widget_GroupOverview <- function(
     strComparisonRiskMetric = strComparisonRiskMetric,
     strComparisonRiskLabel = strComparisonRiskLabel,
     dfComparisonRiskDetail = dfComparisonRiskDetail,
+    strDownloadIcon = as.character(fontawesome::fa("download")),
     bDebug = bDebug
   )
 

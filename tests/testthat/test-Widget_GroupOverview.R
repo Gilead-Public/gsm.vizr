@@ -7,6 +7,8 @@ test_that("Widget_GroupOverview creates a valid HTML widget (#4)", {
     strGroupLevel = "Site"
   )
   expect_s3_class(widget, c("Widget_GroupOverview", "htmlwidget"))
+  expect_match(jsonlite::fromJSON(widget$x$strDownloadIcon), "<svg", fixed = TRUE)
+  expect_equal(jsonlite::fromJSON(widget$x$strDownloadIcon), as.character(fontawesome::fa("download")))
 })
 
 test_that("Widget_GroupOverview returns expected data (#4)", {

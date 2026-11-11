@@ -45,7 +45,7 @@ const addComparisonRiskDetail = function (el, input) {
     let controls = null;
     let tableScroll = null;
     const highlightStyle = document.createElement('style');
-    highlightStyle.textContent = '.group-overview--recent-action { background-color: var(--gsm-action-fill) !important; }';
+    highlightStyle.textContent = '.group-overview--recent-action { background-color: var(--gsm-action-fill) !important; box-shadow: inset 0 0 0 3px var(--gsm-action-border) !important; }';
     el.appendChild(highlightStyle);
     const isRecent = (row) => dateWindowMode && !isMissing(row.LastActionedDate) &&
         !isMissing(row.DaysSinceAction) &&
@@ -112,6 +112,10 @@ const addComparisonRiskDetail = function (el, input) {
     const highlightColor = (row) => {
         const state = displayedState(row);
         return state === 'Closed Action' ? '#e8f5e9' : state === 'Open Action' ? '#ffebee' : '#f2f2f2';
+    };
+    const highlightBorderColor = (row) => {
+        const state = displayedState(row);
+        return state === 'Closed Action' ? '#2da44e' : state === 'Open Action' ? '#cf222e' : '#666666';
     };
     const groupResult = (row, metric) => input.dfResults.find((result) =>
         result.GroupID === row.GroupID && result.MetricID === metric &&
@@ -298,8 +302,13 @@ const addComparisonRiskDetail = function (el, input) {
             const highlighted = highlightRecentActions && recent;
             cell.classList.toggle('group-overview--recent-action', Boolean(highlighted));
             cell.style.boxShadow = '';
-            if (highlighted) cell.style.setProperty('--gsm-action-fill', highlightColor(row));
-            else cell.style.removeProperty('--gsm-action-fill');
+            if (highlighted) {
+                cell.style.setProperty('--gsm-action-fill', highlightColor(row));
+                cell.style.setProperty('--gsm-action-border', highlightBorderColor(row));
+            } else {
+                cell.style.removeProperty('--gsm-action-fill');
+                cell.style.removeProperty('--gsm-action-border');
+            }
             if (row) {
                 const action = latestActionText(row);
                 cell.title = [datum.tooltipContent, action].filter(Boolean).join('\n');
@@ -390,6 +399,7 @@ const addComparisonRiskDetail = function (el, input) {
         el.querySelectorAll('td.group-overview--recent-action').forEach((cell) => {
             cell.classList.remove('group-overview--recent-action');
             cell.style.removeProperty('--gsm-action-fill');
+            cell.style.removeProperty('--gsm-action-border');
         });
         highlightStyle.remove();
         el.removeEventListener('click', toggleDetail);

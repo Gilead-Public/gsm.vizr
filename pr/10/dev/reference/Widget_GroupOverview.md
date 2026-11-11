@@ -104,13 +104,15 @@ Widget_GroupOverview(
   `DaysSinceAction`, and `LastActionedDate` adds a pale state-colored
   background tint to each site/KRI cell with an action recorded 0
   through 90 days before the assessment date. Closed Action uses pale
-  green, Open Action pale red, and other/previous states pale grey. The
+  green, Open Action pale red, and other/previous states pale grey. A
+  3px inset border uses bright green for Closed, bright red for Open,
+  and dark grey otherwise, without changing cell dimensions. The
   original KRI hover details are retained; only the final action line
   shows the same latest state, date, and age as the dropdown. This
   recency indicator is independent of decision coverage and does not
   imply risk resolution. A single "Highlight actions within 90 days"
-  checkbox, on by default, toggles only the tint and restores the
-  original background when off. All matrix cells remain visible. The
+  checkbox, on by default, toggles the border and tint, restoring the
+  original styling when off. All matrix cells remain visible. The
   expanded breakdown includes KRIs flagged or actioned in any snapshot
   within the inclusive 90-day history, including findings that are now
   green and historical-only results. `dfResultsHistory` supplies flag

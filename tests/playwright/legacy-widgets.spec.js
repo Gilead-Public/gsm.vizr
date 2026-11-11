@@ -300,32 +300,39 @@ test('90-day action borders mark only the specific site KRI without score contro
   expect(await borderedCells()).toEqual(expectedBorders);
   await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(4);
   await expect(overview.locator('td.group-overview--recent-action').first())
-    .toHaveCSS('box-shadow', 'rgb(46, 125, 50) 0px 0px 0px 1px inset');
+    .toHaveCSS('background-color', 'rgb(232, 245, 233)');
+  await expect(overview.locator('td.group-overview--recent-action').first()).toHaveCSS('box-shadow', 'none');
   await expect(overview.locator('td.group-overview--recent-action').first())
-    .toHaveAttribute('title', 'Latest action: Closed Action. Last addressed: 2026-10-15. Days ago: 20.');
+    .toHaveAttribute('title', /^Score: 1\nKRI 1: 0\.50\nEvents: 1\nParticipants: 2\nLatest action: Closed Action\. Last addressed: 2026-10-15\. Days ago: 20\.$/);
   const actionStyles = () => overview.locator('td.group-overview--recent-action').evaluateAll((cells) =>
     Object.fromEntries(cells.map((cell) => [
       `${cell.__data__.GroupID}:${cell.__data__.MetricID}`,
-      { border: getComputedStyle(cell).boxShadow, hover: cell.title, accessible: cell.getAttribute('aria-description') }
+      { fill: getComputedStyle(cell).backgroundColor, hover: cell.title.split('\n').at(-1),
+        accessible: cell.getAttribute('aria-description') }
     ])));
   const expectedActionStyles = {
-    '1001:Analysis_kri0001': { border: 'rgb(46, 125, 50) 0px 0px 0px 1px inset',
+    '1001:Analysis_kri0001': { fill: 'rgb(232, 245, 233)',
       hover: 'Latest action: Closed Action. Last addressed: 2026-10-15. Days ago: 20.',
       accessible: 'Latest action: Closed Action. Last addressed: 2026-10-15. Days ago: 20.' },
-    '1001:Analysis_kri0003': { border: 'rgb(198, 40, 40) 0px 0px 0px 1px inset',
+    '1001:Analysis_kri0003': { fill: 'rgb(255, 235, 238)',
       hover: 'Latest action: Open Action. Last addressed: 2026-10-15. Days ago: 20.',
       accessible: 'Latest action: Open Action. Last addressed: 2026-10-15. Days ago: 20.' },
-    '1002:Analysis_kri0001': { border: 'rgb(102, 102, 102) 0px 0px 0px 1px inset',
+    '1002:Analysis_kri0001': { fill: 'rgb(242, 242, 242)',
       hover: 'Latest action: Awaiting Triage. Last addressed: 2026-10-15. Days ago: 20.',
       accessible: 'Latest action: Awaiting Triage. Last addressed: 2026-10-15. Days ago: 20.' },
-    '1002:Analysis_kri0002': { border: 'rgb(102, 102, 102) 0px 0px 0px 1px inset',
+    '1002:Analysis_kri0002': { fill: 'rgb(242, 242, 242)',
       hover: 'Latest action: No Action. Last addressed: 2026-08-06. Days ago: 90.',
       accessible: 'Latest action: No Action. Last addressed: 2026-08-06. Days ago: 90.' }
   };
   expect(await actionStyles()).toEqual(expectedActionStyles);
   expect(await overview.locator('td.group-overview--metric').evaluateAll((cells) =>
-    cells.map((cell) => [cell.__data__.GroupID, cell.__data__.MetricID, getComputedStyle(cell).backgroundColor]).sort()
-  )).toEqual(await page.evaluate(() => window.actionBorderBackgrounds));
+    cells.filter((cell) => !cell.classList.contains('group-overview--recent-action'))
+      .map((cell) => [cell.__data__.GroupID, cell.__data__.MetricID, getComputedStyle(cell).backgroundColor]).sort()
+  )).toEqual((await page.evaluate(() => window.actionBorderBackgrounds))
+    .filter(([group, metric]) => !expectedBorders.includes(`${group}:${metric}`)));
+  expect(await overview.locator('td.group-overview--metric').evaluateAll((cells) =>
+    cells.every((cell) => !cell.__data__.tooltipContent || cell.title.startsWith(cell.__data__.tooltipContent))
+  )).toBe(true);
   const flags = () => overview.locator('td.group-overview--metric')
     .evaluateAll((cells) => cells.map((cell) => [cell.__data__.GroupID, cell.__data__.MetricID, cell.__data__.Flag]).sort());
   const originalFlags = await flags();
@@ -349,7 +356,7 @@ test('90-day action borders mark only the specific site KRI without score contro
       const values = [...row.children].map((cell) => cell.textContent);
       const cell = [...row.closest('tbody').querySelectorAll('td.group-overview--metric')].find((candidate) =>
         candidate.__data__.GroupID === '1001' && candidate.__data__.MetricID === row.dataset.metricId);
-      return cell && cell.title === `Latest action: ${values[2]}. Last addressed: ${values[3]}. Days ago: ${values[4]}.`;
+      return cell && cell.title.split('\n').at(-1) === `Latest action: ${values[2]}. Last addressed: ${values[3]}. Days ago: ${values[4]}.`;
     })
   )).toBe(true);
   await expect(overview.locator('td.group-overview--metric')).toHaveCount(14);
@@ -360,6 +367,9 @@ test('90-day action borders mark only the specific site KRI without score contro
   expect(await overview.locator('td.group-overview--metric').evaluateAll((cells) =>
     cells.every((cell) => getComputedStyle(cell).boxShadow === 'none')
   )).toBe(true);
+  expect(await overview.locator('td.group-overview--metric').evaluateAll((cells) =>
+    cells.map((cell) => [cell.__data__.GroupID, cell.__data__.MetricID, getComputedStyle(cell).backgroundColor]).sort()
+  )).toEqual(await page.evaluate(() => window.actionBorderBackgrounds));
   expect(await values()).toEqual({ '1001': '50', '1002': '75' });
   expect(await overview.locator('.group-overview--comparison-detail').innerText()).toBe(detailText);
   await overview.getByRole('columnheader', { name: 'Review Priority Score', exact: true }).click();

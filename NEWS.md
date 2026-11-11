@@ -1,5 +1,10 @@
 # gsm.vizr 0.1.0
 
+* Retained the original KRI hover details and corrected only the final latest
+  action line. Recent-action borders are replaced by very light green/red/grey
+  cell tints for Closed/Open/other states. Turning highlighting off restores
+  the original background; flag symbols, CSV, and scores are unchanged (#63).
+
 * KRI-cell action hovers now match the dropdown's latest action state, date,
   and age. Recent Closed Actions have green borders, Open Actions red, and
   No Action/previous/other states retain grey. The highlight toggle, CSV,

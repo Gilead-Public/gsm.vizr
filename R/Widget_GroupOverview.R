@@ -28,14 +28,14 @@
 #'   each counts toward the score. Ignored when the second metric is absent
 #'   from `dfResults`. Default: NULL.
 #'   Dated detail with `ActionWindowDays`, `DaysSinceAction`,
-#'   and `LastActionedDate` adds a thin state-colored inset border to each site/KRI
+#'   and `LastActionedDate` adds a pale state-colored background tint to each site/KRI
 #'   cell with an action recorded 0 through 90 days before the assessment date.
-#'   Closed Action uses green, Open Action red, and other/previous states grey.
-#'   The hover shows the same latest action state, date, and age as the dropdown,
-#'   rather than a history or coverage explanation. This recency indicator is
+#'   Closed Action uses pale green, Open Action pale red, and other/previous states pale grey.
+#'   The original KRI hover details are retained; only the final action line
+#'   shows the same latest state, date, and age as the dropdown. This recency indicator is
 #'   independent of decision coverage and does not imply risk resolution.
 #'   A single "Highlight actions within 90 days" checkbox, on by default,
-#'   toggles only the border and retains its state through sorting and redraws.
+#'   toggles only the tint and restores the original background when off.
 #'   All matrix cells remain visible. The expanded breakdown includes KRIs
 #'   flagged or actioned in any snapshot within the inclusive 90-day history,
 #'   including findings that are now green and historical-only results.
@@ -43,7 +43,7 @@
 #'   action recency. Items with neither recent evidence are omitted.
 #'   There are no window, hide, or score-exclusion controls; reported scores,
 #'   flag colors, and contribution fields are never changed by the widget.
-#'   Borders survive sorting and redraws. The dated breakdown has six columns:
+#'   Highlighting survives sorting and redraws. The dated breakdown has six columns:
 #'   KRI, Flag, Action state, Last Addressed, Days Ago, and Counted. Its Flag is
 #'   the latest flagged value in the window, or the reviewed flag for a recent
 #'   action; the main matrix keeps the current flag. Counted reflects the

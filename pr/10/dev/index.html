@@ -86,6 +86,68 @@
 <p>See <code><a href="articles/gsm-vizr.html">vignette("gsm-vizr")</a></code> for the event contract, the Shiny proxy verbs, and how to drive a chart from a report that has no Shiny session.</p>
 </div>
 <div class="section level2">
+<h2 id="review-csv">Review CSV<a class="anchor" aria-label="anchor" href="#review-csv"></a>
+</h2>
+<p><code><a href="reference/Widget_GroupOverview.html">Widget_GroupOverview()</a></code> provides <strong>Download CSV</strong> when comparison-risk detail is supplied. It exports one row per review entry across all supplied sites, not just the expanded site or currently filtered table. Dated exports use the same inclusive 90-day flagged-or-addressed selection and ordering as the drilldown; legacy exports include nonzero flags. Sites sort naturally by ID, then rows sort by latest addressed date, absolute review flag, and KRI ID. The export never recalculates scores or changes highlighting.</p>
+<p>Schema version 1 uses these ordered column groups:</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr>
+<th>Group</th>
+<th>Columns</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Context</td>
+<td>
+<code>CSVSchemaVersion</code>, <code>StudyID</code>, <code>SnapshotDate</code>, <code>GroupLevel</code>, <code>GroupID</code>, <code>MetricID</code>, <code>MetricLabel</code>
+</td>
+</tr>
+<tr>
+<td>Flags</td>
+<td>
+<code>CurrentFlag</code>, <code>ReviewFlag</code>, <code>LastFlaggedDate</code>, <code>DaysSinceFlag</code>
+</td>
+</tr>
+<tr>
+<td>Action</td>
+<td>
+<code>ActionState</code>, <code>ActionedFlag</code>, <code>LastAddressed</code>, <code>DaysAgo</code>, <code>ActionedDateSource</code>, <code>ActionDateIsProxy</code>, <code>ActionWindowDays</code>
+</td>
+</tr>
+<tr>
+<td>Contribution</td>
+<td>
+<code>Weight</code>, <code>WeightMax</code>, <code>EffectiveWeight</code>, <code>Counted</code>, <code>ActionFactor</code>
+</td>
+</tr>
+<tr>
+<td>Decision</td>
+<td>
+<code>SnapshotDecisionExcluded</code>, <code>SnapshotQuarantineBlocked</code>, <code>DecisionReason</code>, <code>DecisionCoversFinding</code>
+</td>
+</tr>
+<tr>
+<td>Reported scores</td>
+<td>
+<code>SiteRiskScore</code>, <code>SiteRiskNumerator</code>, <code>SiteRiskDenominator</code>, <code>ComparisonRiskScore</code>, <code>ComparisonRiskNumerator</code>, <code>ComparisonRiskDenominator</code>, <code>ComparisonRiskMetricID</code>, <code>ComparisonRiskLabel</code>
+</td>
+</tr>
+<tr>
+<td>Provenance</td>
+<td>
+<code>ActionPolicy</code>, <code>ActionAsOfDate</code>, <code>ActionExtractionDate</code>, <code>RiskSignalID</code>, <code>ActionID</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The primary key is <code>(StudyID, SnapshotDate, GroupLevel, GroupID, MetricID)</code> for standard per-KRI detail. <code>CurrentFlag</code> is the matrix flag; <code>ReviewFlag</code> is the drilldown’s historical/reviewed flag. <code>Counted</code> uses the same Yes/No/Partly/Not weighted labels as the drilldown. Scores and their components are copied at full precision and repeated per review row; the exported row set is not a new denominator. Proxy dates remain distinguishable from verified dates.</p>
+<p>The file is UTF-8 with a BOM, a header row, CRLF records, ISO <code>YYYY-MM-DD</code> dates, plain numeric values, and <code>true</code>/<code>false</code> booleans. Missing values are empty. Text is quoted with embedded quotes doubled; spreadsheet-formula-like text is prefixed with an apostrophe. Identifier fields are strings, so import them as text to preserve leading zeros. Filenames follow <code>risk-review_&lt;StudyID&gt;_&lt;assessment-date&gt;.csv</code> when that context is available. Downloads are generated locally in the browser; no data is uploaded.</p>
+</div>
+<div class="section level2">
 <h2 id="for-package-authors">For package authors<a class="anchor" aria-label="anchor" href="#for-package-authors"></a>
 </h2>
 <p>If your package ships its own custom widget that needs <code>window.gsmViz</code>, declare the shared dependency rather than vendoring a second copy of the bundle:</p>

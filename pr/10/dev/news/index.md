@@ -2,6 +2,20 @@
 
 ## gsm.vizr 0.1.0
 
+- KRI-cell action hovers now match the dropdown’s latest action state,
+  date, and age. Recent Closed Actions have green borders, Open Actions
+  red, and No Action/previous/other states retain grey. The highlight
+  toggle, CSV, score contributions, and original flag backgrounds are
+  unchanged
+  ([\#63](https://github.com/Gilead-Public/gsm.vizr/issues/63)).
+
+- Restored the comparison-drilldown Download CSV control. Version 1
+  exports review rows across all supplied sites with IDs, flags, date
+  provenance, weights, exclusion reasons, and reported score components.
+  UTF-8 CSV protects spreadsheet text from formula injection.
+  Downloading does not change scores, highlighting, filters, or supplied
+  detail ([\#63](https://github.com/Gilead-Public/gsm.vizr/issues/63)).
+
 Initial release: an htmlwidgets interface to the gsm.viz JavaScript
 library, hosting both of its chart generations against one vendored
 gsm.viz 2.4.1 bundle.
@@ -43,8 +57,8 @@ gsm.viz 2.4.1 bundle.
   supports mobile tables. The compact six-column drilldown includes KRIs
   flagged or actioned in the last 90 days, using optional
   `dfResultsHistory` for prior flags, including now-green and
-  historical-only findings. The download control is removed; reported
-  scores and complete supplied evidence remain unchanged
+  historical-only findings. Reported scores and complete supplied
+  evidence remain unchanged
   ([\#63](https://github.com/Gilead-Public/gsm.vizr/issues/63)).
 - Takes gsm.core (\>= 1.3.1) in Imports, alongside dplyr, fontawesome,
   lifecycle, magrittr, purrr, rlang, and tidyr.

@@ -74,27 +74,129 @@ const addComparisonRiskDetail = function (el, input) {
     };
     const kriOrder = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
+    const reviewRows = (rows) => rows
+        .map((row) => isMissing(row.Flag) ? {
+            ...row,
+            Flag: input.dfResults.find((result) =>
+                result.GroupID === row.GroupID && result.MetricID === row.MetricID)?.Flag
+        } : row)
+        .filter((row) => dateWindowMode ? hasRecentFlag(row) || isRecent(row) :
+            !isMissing(row.Flag) && Number.isFinite(Number(row.Flag)) && Number(row.Flag) !== 0)
+        .sort((left, right) => {
+            const leftDate = actionTimestamp(left);
+            const rightDate = actionTimestamp(right);
+            if (leftDate !== rightDate) return leftDate > rightDate ? -1 : 1;
+            const leftSeverity = flagMagnitude(left);
+            const rightSeverity = flagMagnitude(right);
+            if (leftSeverity !== rightSeverity) return leftSeverity > rightSeverity ? -1 : 1;
+            return kriOrder.compare(String(left.MetricID), String(right.MetricID));
+        });
+    const countedLabel = (row) => {
+        const weight = isMissing(row.Weight) ? NaN : Number(row.Weight);
+        const effective = Number(row.EffectiveWeight);
+        return !Number.isFinite(weight) ? 'Not weighted' :
+            effective <= 0 ? 'No' : effective < weight ? 'Partly' : 'Yes';
+    };
+    const displayedState = (row) => dateWindowMode &&
+        (isMissing(row.ActionState) || ['Not flagged', 'Not assessed'].includes(row.ActionState))
+        ? 'Not recorded' : row.ActionState;
+    const latestActionText = (row) => {
+        const state = displayedState(row);
+        return `Latest action: ${isMissing(state) ? 'Not recorded' : state}. ` +
+            `Last addressed: ${isMissing(row.LastActionedDate) ? '-' : row.LastActionedDate}. ` +
+            `Days ago: ${isMissing(row.DaysSinceAction) ? '-' : row.DaysSinceAction}.`;
+    };
+    const highlightColor = (row) => {
+        const state = displayedState(row);
+        return state === 'Closed Action' ? '#2e7d32' : state === 'Open Action' ? '#c62828' : '#666666';
+    };
+    const groupResult = (row, metric) => input.dfResults.find((result) =>
+        result.GroupID === row.GroupID && result.MetricID === metric &&
+        (isMissing(row.StudyID) || isMissing(result.StudyID) || row.StudyID === result.StudyID));
+    const downloadCsv = () => {
+        const columns = [
+            ['CSVSchemaVersion', () => 1, 'number'],
+            ['StudyID', (row) => row.StudyID || groupResult(row, comparisonMetric)?.StudyID],
+            ['SnapshotDate', (row) => row.SnapshotDate || groupResult(row, comparisonMetric)?.SnapshotDate || row.ActionAsOfDate, 'date'],
+            ['GroupLevel', (row) => row.GroupLevel || input.strGroupLevel || groupResult(row, comparisonMetric)?.GroupLevel],
+            ['GroupID', (row) => row.GroupID],
+            ['MetricID', (row) => row.MetricID],
+            ['MetricLabel', (row) => metricLabels[row.MetricID] || row.MetricID],
+            ['CurrentFlag', (row) => row.Flag, 'number'],
+            ['ReviewFlag', detailFlag, 'number'],
+            ['LastFlaggedDate', (row) => row.LastFlaggedDate, 'date'],
+            ['DaysSinceFlag', (row) => row.DaysSinceFlag, 'number'],
+            ['ActionState', displayedState],
+            ['ActionedFlag', (row) => row.ActionedFlag, 'number'],
+            ['LastAddressed', (row) => row.LastActionedDate, 'date'],
+            ['DaysAgo', (row) => row.DaysSinceAction, 'number'],
+            ['ActionedDateSource', (row) => row.ActionedDateSource],
+            ['ActionDateIsProxy', (row) => row.ActionDateIsProxy, 'boolean'],
+            ['ActionWindowDays', (row) => row.ActionWindowDays, 'number'],
+            ['Weight', (row) => row.Weight, 'number'],
+            ['WeightMax', (row) => row.WeightMax, 'number'],
+            ['EffectiveWeight', (row) => row.EffectiveWeight, 'number'],
+            ['Counted', countedLabel],
+            ['ActionFactor', (row) => row.ActionFactor, 'number'],
+            ['SnapshotDecisionExcluded', (row) => row.SnapshotDecisionExcluded, 'boolean'],
+            ['SnapshotQuarantineBlocked', (row) => row.SnapshotQuarantineBlocked, 'boolean'],
+            ['DecisionReason', (row) => row.SnapshotDecisionReason || row.ActionReason || row.ActionCoverageReason],
+            ['DecisionCoversFinding', (row) => row.DecisionCoversFinding, 'boolean'],
+            ['SiteRiskScore', (row) => groupResult(row, input.strSiteRiskMetric || 'Analysis_srs0001')?.Score, 'number'],
+            ['SiteRiskNumerator', (row) => groupResult(row, input.strSiteRiskMetric || 'Analysis_srs0001')?.Numerator, 'number'],
+            ['SiteRiskDenominator', (row) => groupResult(row, input.strSiteRiskMetric || 'Analysis_srs0001')?.Denominator, 'number'],
+            ['ComparisonRiskScore', (row) => groupResult(row, comparisonMetric)?.Score, 'number'],
+            ['ComparisonRiskNumerator', (row) => groupResult(row, comparisonMetric)?.Numerator, 'number'],
+            ['ComparisonRiskDenominator', (row) => groupResult(row, comparisonMetric)?.Denominator, 'number'],
+            ['ComparisonRiskMetricID', () => comparisonMetric],
+            ['ComparisonRiskLabel', () => input.strComparisonRiskLabel],
+            ['ActionPolicy', (row) => row.ActionPolicy],
+            ['ActionAsOfDate', (row) => row.ActionAsOfDate, 'date'],
+            ['ActionExtractionDate', (row) => row.ActionExtractionDate || row.ExtractionDate, 'date'],
+            ['RiskSignalID', (row) => row.RiskSignalID || row.ActionRiskSignalID],
+            ['ActionID', (row) => row.ActionID]
+        ];
+        const encode = (value, type) => {
+            if (isMissing(value)) return '';
+            if (type === 'number') return Number.isFinite(Number(value)) ? String(Number(value)) : '';
+            if (type === 'boolean') {
+                if ([true, 'true', 'TRUE', 1, '1'].includes(value)) return 'true';
+                if ([false, 'false', 'FALSE', 0, '0'].includes(value)) return 'false';
+                return '';
+            }
+            if (type === 'date') {
+                const timestamp = Date.parse(value);
+                return Number.isFinite(timestamp) ? new Date(timestamp).toISOString().slice(0, 10) : '';
+            }
+            let text = String(value);
+            if (/^[\s\u0000-\u001f]*[=+\-@]/.test(text) || /^[\t\r\n]/.test(text)) text = `'${text}`;
+            return `"${text.replace(/"/g, '""')}"`;
+        };
+        const groups = Object.keys(detailByGroup).sort((left, right) => kriOrder.compare(left, right));
+        const rows = groups.flatMap((group) => reviewRows(detailByGroup[group]));
+        const csv = [columns.map(([name]) => encode(name)).join(','),
+            ...rows.map((row) => columns.map(([, value, type]) => encode(value(row), type)).join(','))]
+            .join('\r\n') + '\r\n';
+        const context = rows[0];
+        const study = context && (context.StudyID || groupResult(context, comparisonMetric)?.StudyID);
+        const snapshot = context && (context.ActionAsOfDate || context.SnapshotDate || groupResult(context, comparisonMetric)?.SnapshotDate);
+        const filename = ['risk-review', study, snapshot].filter((value) => !isMissing(value))
+            .map((value) => String(value).replace(/[^A-Za-z0-9._-]/g, '_')).join('_') + '.csv';
+        const url = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 0);
+    };
+
     const buildPanel = () => {
         const panel = document.createElement('div');
         panel.style.cssText = 'padding: 4px 8px 8px; font-size: 0.9em; text-align: left; overflow-x: auto;';
 
-        const rows = (detailByGroup[selectedGroup] || [])
-            .map((row) => isMissing(row.Flag) ? {
-                ...row,
-                Flag: input.dfResults.find((result) =>
-                    result.GroupID === row.GroupID && result.MetricID === row.MetricID)?.Flag
-            } : row)
-            .filter((row) => dateWindowMode ? hasRecentFlag(row) || isRecent(row) :
-                !isMissing(row.Flag) && Number.isFinite(Number(row.Flag)) && Number(row.Flag) !== 0)
-            .sort((left, right) => {
-                const leftDate = actionTimestamp(left);
-                const rightDate = actionTimestamp(right);
-                if (leftDate !== rightDate) return leftDate > rightDate ? -1 : 1;
-                const leftSeverity = flagMagnitude(left);
-                const rightSeverity = flagMagnitude(right);
-                if (leftSeverity !== rightSeverity) return leftSeverity > rightSeverity ? -1 : 1;
-                return kriOrder.compare(String(left.MetricID), String(right.MetricID));
-            });
+        const rows = reviewRows(detailByGroup[selectedGroup] || []);
 
         const heading = document.createElement('div');
         heading.style.cssText = 'font-weight: bold; margin-bottom: 6px;';
@@ -122,19 +224,14 @@ const addComparisonRiskDetail = function (el, input) {
         headers.forEach((label) => addCell(grid, label, true));
 
         rows.forEach((row) => {
-            const weight = isMissing(row.Weight) ? NaN : Number(row.Weight);
-            const effective = Number(row.EffectiveWeight);
-            const counted = !Number.isFinite(weight) ? 'Not weighted' :
-                effective <= 0 ? 'No' : effective < weight ? 'Partly' : 'Yes';
+            const counted = countedLabel(row);
             const line = document.createElement('div');
             line.setAttribute('role', 'row');
             line.dataset.metricId = row.MetricID;
             line.style.display = 'contents';
             if (!dateWindowMode && counted === 'No') line.style.color = '#666';
             const displayedFlag = detailFlag(row);
-            const displayedActionState = dateWindowMode &&
-                (isMissing(row.ActionState) || ['Not flagged', 'Not assessed'].includes(row.ActionState))
-                ? 'Not recorded' : row.ActionState;
+            const displayedActionState = displayedState(row);
             const values = [
                 metricLabels[row.MetricID] || row.MetricID,
                 isMissing(displayedFlag) ? '-' : displayedFlag,
@@ -147,7 +244,7 @@ const addComparisonRiskDetail = function (el, input) {
             ];
             values.forEach((value) => addCell(line, value));
             line.title = dateWindowMode
-                ? `As of: ${row.ActionAsOfDate}; latest flagged snapshot: ${row.LastFlaggedDate || '-'}; current flag: ${isMissing(row.Flag) ? '-' : row.Flag}; extraction: ${row.ActionExtractionDate || '-'}; source: ${row.ActionedDateSource || '-'}`
+                ? `${latestActionText(row)} As of: ${row.ActionAsOfDate}; latest flagged snapshot: ${row.LastFlaggedDate || '-'}; current flag: ${isMissing(row.Flag) ? '-' : row.Flag}; extraction: ${row.ActionExtractionDate || '-'}; source: ${row.ActionedDateSource || '-'}; reason: ${actionReason(row)}`
                 : '';
             grid.appendChild(line);
         });
@@ -197,13 +294,11 @@ const addComparisonRiskDetail = function (el, input) {
             const recent = row && isRecent(row);
             const highlighted = highlightRecentActions && recent;
             cell.classList.toggle('group-overview--recent-action', Boolean(highlighted));
-            cell.style.boxShadow = highlighted ? 'inset 0 0 0 1px #666666' : '';
+            cell.style.boxShadow = highlighted ? `inset 0 0 0 1px ${highlightColor(row)}` : '';
             if (row) {
-                const recency = recent
-                    ? `Action recorded within 90 days: ${row.LastActionedDate} (${row.DaysSinceAction} days before ${row.ActionAsOfDate || 'assessment'}).`
-                    : `Last addressed: ${isMissing(row.LastActionedDate) ? '-' : row.LastActionedDate}.`;
-                cell.title = `${datum.tooltipContent || ''}\n${recency} ${actionReason(row)}`;
-                cell.setAttribute('aria-description', `${recency} ${actionReason(row)}`);
+                const action = latestActionText(row);
+                cell.title = action;
+                cell.setAttribute('aria-description', action);
             }
         });
     };
@@ -246,10 +341,10 @@ const addComparisonRiskDetail = function (el, input) {
     el.addEventListener('keydown', keyboardDetail);
     el.addEventListener('click', beforeSort, true);
 
+    controls = document.createElement('div');
+    controls.className = 'group-overview--action-controls';
+    controls.style.cssText = 'display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 0;';
     if (dateWindowMode) {
-        controls = document.createElement('div');
-        controls.className = 'group-overview--action-controls';
-        controls.style.cssText = 'display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 0;';
         const highlightLabel = document.createElement('label');
         highlightLabel.style.cssText = 'max-width: 100%; min-width: 0;';
         const highlightCheckbox = document.createElement('input');
@@ -270,8 +365,21 @@ const addComparisonRiskDetail = function (el, input) {
         tableScroll.setAttribute('aria-label', 'Site risk and review priority scores');
         table.before(tableScroll);
         tableScroll.appendChild(table);
-        el.insertBefore(controls, tableScroll);
     }
+    const downloadButton = document.createElement('button');
+    downloadButton.type = 'button';
+    downloadButton.className = 'btn btn-default btn-sm';
+    downloadButton.title = 'Download review rows for all sites, independent of table filters and highlighting.';
+    if (input.strDownloadIcon) {
+        const icon = document.createElement('span');
+        icon.setAttribute('aria-hidden', 'true');
+        icon.innerHTML = input.strDownloadIcon;
+        downloadButton.appendChild(icon);
+    }
+    downloadButton.appendChild(document.createTextNode(' Download CSV'));
+    downloadButton.addEventListener('click', downloadCsv);
+    controls.appendChild(downloadButton);
+    el.insertBefore(controls, tableScroll || el.querySelector('table.group-overview'));
     return () => {
         observer.disconnect();
         el.removeEventListener('click', toggleDetail);

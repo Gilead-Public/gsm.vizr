@@ -51,6 +51,47 @@ See
 for the event contract, the Shiny proxy verbs, and how to drive a chart
 from a report that has no Shiny session.
 
+## Review CSV
+
+[`Widget_GroupOverview()`](https://gilead-public.github.io/gsm.vizr/dev/reference/Widget_GroupOverview.md)
+provides **Download CSV** when comparison-risk detail is supplied. It
+exports one row per review entry across all supplied sites, not just the
+expanded site or currently filtered table. Dated exports use the same
+inclusive 90-day flagged-or-addressed selection and ordering as the
+drilldown; legacy exports include nonzero flags. Sites sort naturally by
+ID, then rows sort by latest addressed date, absolute review flag, and
+KRI ID. The export never recalculates scores or changes highlighting.
+
+Schema version 1 uses these ordered column groups:
+
+| Group | Columns |
+|----|----|
+| Context | `CSVSchemaVersion`, `StudyID`, `SnapshotDate`, `GroupLevel`, `GroupID`, `MetricID`, `MetricLabel` |
+| Flags | `CurrentFlag`, `ReviewFlag`, `LastFlaggedDate`, `DaysSinceFlag` |
+| Action | `ActionState`, `ActionedFlag`, `LastAddressed`, `DaysAgo`, `ActionedDateSource`, `ActionDateIsProxy`, `ActionWindowDays` |
+| Contribution | `Weight`, `WeightMax`, `EffectiveWeight`, `Counted`, `ActionFactor` |
+| Decision | `SnapshotDecisionExcluded`, `SnapshotQuarantineBlocked`, `DecisionReason`, `DecisionCoversFinding` |
+| Reported scores | `SiteRiskScore`, `SiteRiskNumerator`, `SiteRiskDenominator`, `ComparisonRiskScore`, `ComparisonRiskNumerator`, `ComparisonRiskDenominator`, `ComparisonRiskMetricID`, `ComparisonRiskLabel` |
+| Provenance | `ActionPolicy`, `ActionAsOfDate`, `ActionExtractionDate`, `RiskSignalID`, `ActionID` |
+
+The primary key is
+`(StudyID, SnapshotDate, GroupLevel, GroupID, MetricID)` for standard
+per-KRI detail. `CurrentFlag` is the matrix flag; `ReviewFlag` is the
+drilldown’s historical/reviewed flag. `Counted` uses the same
+Yes/No/Partly/Not weighted labels as the drilldown. Scores and their
+components are copied at full precision and repeated per review row; the
+exported row set is not a new denominator. Proxy dates remain
+distinguishable from verified dates.
+
+The file is UTF-8 with a BOM, a header row, CRLF records, ISO
+`YYYY-MM-DD` dates, plain numeric values, and `true`/`false` booleans.
+Missing values are empty. Text is quoted with embedded quotes doubled;
+spreadsheet-formula-like text is prefixed with an apostrophe. Identifier
+fields are strings, so import them as text to preserve leading zeros.
+Filenames follow `risk-review_<StudyID>_<assessment-date>.csv` when that
+context is available. Downloads are generated locally in the browser; no
+data is uploaded.
+
 ## For package authors
 
 If your package ships its own custom widget that needs `window.gsmViz`,

@@ -44,6 +44,9 @@ const addComparisonRiskDetail = function (el, input) {
     let selectedGroup = null;
     let controls = null;
     let tableScroll = null;
+    const highlightStyle = document.createElement('style');
+    highlightStyle.textContent = '.group-overview--recent-action { background-color: var(--gsm-action-fill) !important; }';
+    el.appendChild(highlightStyle);
     const isRecent = (row) => dateWindowMode && !isMissing(row.LastActionedDate) &&
         !isMissing(row.DaysSinceAction) &&
         Number.isFinite(Number(row.DaysSinceAction)) &&
@@ -108,7 +111,7 @@ const addComparisonRiskDetail = function (el, input) {
     };
     const highlightColor = (row) => {
         const state = displayedState(row);
-        return state === 'Closed Action' ? '#2e7d32' : state === 'Open Action' ? '#c62828' : '#666666';
+        return state === 'Closed Action' ? '#e8f5e9' : state === 'Open Action' ? '#ffebee' : '#f2f2f2';
     };
     const groupResult = (row, metric) => input.dfResults.find((result) =>
         result.GroupID === row.GroupID && result.MetricID === metric &&
@@ -294,10 +297,12 @@ const addComparisonRiskDetail = function (el, input) {
             const recent = row && isRecent(row);
             const highlighted = highlightRecentActions && recent;
             cell.classList.toggle('group-overview--recent-action', Boolean(highlighted));
-            cell.style.boxShadow = highlighted ? `inset 0 0 0 1px ${highlightColor(row)}` : '';
+            cell.style.boxShadow = '';
+            if (highlighted) cell.style.setProperty('--gsm-action-fill', highlightColor(row));
+            else cell.style.removeProperty('--gsm-action-fill');
             if (row) {
                 const action = latestActionText(row);
-                cell.title = action;
+                cell.title = [datum.tooltipContent, action].filter(Boolean).join('\n');
                 cell.setAttribute('aria-description', action);
             }
         });
@@ -382,6 +387,11 @@ const addComparisonRiskDetail = function (el, input) {
     el.insertBefore(controls, tableScroll || el.querySelector('table.group-overview'));
     return () => {
         observer.disconnect();
+        el.querySelectorAll('td.group-overview--recent-action').forEach((cell) => {
+            cell.classList.remove('group-overview--recent-action');
+            cell.style.removeProperty('--gsm-action-fill');
+        });
+        highlightStyle.remove();
         el.removeEventListener('click', toggleDetail);
         el.removeEventListener('keydown', keyboardDetail);
         el.removeEventListener('click', beforeSort, true);

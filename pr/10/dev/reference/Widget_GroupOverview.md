@@ -101,39 +101,40 @@ Widget_GroupOverview(
   that group listing its KRIs, their action state, and whether each
   counts toward the score. Ignored when the second metric is absent from
   `dfResults`. Default: NULL. Dated detail with `ActionWindowDays`,
-  `DaysSinceAction`, and `LastActionedDate` adds a thin state-colored
-  inset border to each site/KRI cell with an action recorded 0 through
-  90 days before the assessment date. Closed Action uses green, Open
-  Action red, and other/previous states grey. The hover shows the same
-  latest action state, date, and age as the dropdown, rather than a
-  history or coverage explanation. This recency indicator is independent
-  of decision coverage and does not imply risk resolution. A single
-  "Highlight actions within 90 days" checkbox, on by default, toggles
-  only the border and retains its state through sorting and redraws. All
-  matrix cells remain visible. The expanded breakdown includes KRIs
-  flagged or actioned in any snapshot within the inclusive 90-day
-  history, including findings that are now green and historical-only
-  results. `dfResultsHistory` supplies flag snapshots; explicit action
-  dates supply action recency. Items with neither recent evidence are
-  omitted. There are no window, hide, or score-exclusion controls;
-  reported scores, flag colors, and contribution fields are never
-  changed by the widget. Borders survive sorting and redraws. The dated
-  breakdown has six columns: KRI, Flag, Action state, Last Addressed,
-  Days Ago, and Counted. Its Flag is the latest flagged value in the
-  window, or the reviewed flag for a recent action; the main matrix
-  keeps the current flag. Counted reflects the unchanged reported
-  contribution. Rows sort by newest Last Addressed date, then descending
-  absolute displayed flag, then natural KRI number; undated rows come
-  last. The tooltip retains the flag snapshot, current flag,
-  assessment/extraction dates, and date provenance. There is a Download
-  CSV button exporting review rows across all supplied sites,
-  independent of table filters, the expanded site, and highlighting.
-  Schema version 1 contains stable IDs, current/review flags, ISO dates,
-  action provenance, weights, exclusion reasons, and full-precision
-  reported scores with their numerators/denominators. Missing values are
-  blank. UTF-8 CSV uses quoted text, escaped quotes, CRLF records, and a
-  BOM; potentially executable spreadsheet text is apostrophe-prefixed.
-  Export never recalculates scores or changes the supplied detail.
+  `DaysSinceAction`, and `LastActionedDate` adds a pale state-colored
+  background tint to each site/KRI cell with an action recorded 0
+  through 90 days before the assessment date. Closed Action uses pale
+  green, Open Action pale red, and other/previous states pale grey. The
+  original KRI hover details are retained; only the final action line
+  shows the same latest state, date, and age as the dropdown. This
+  recency indicator is independent of decision coverage and does not
+  imply risk resolution. A single "Highlight actions within 90 days"
+  checkbox, on by default, toggles only the tint and restores the
+  original background when off. All matrix cells remain visible. The
+  expanded breakdown includes KRIs flagged or actioned in any snapshot
+  within the inclusive 90-day history, including findings that are now
+  green and historical-only results. `dfResultsHistory` supplies flag
+  snapshots; explicit action dates supply action recency. Items with
+  neither recent evidence are omitted. There are no window, hide, or
+  score-exclusion controls; reported scores, flag colors, and
+  contribution fields are never changed by the widget. Highlighting
+  survives sorting and redraws. The dated breakdown has six columns:
+  KRI, Flag, Action state, Last Addressed, Days Ago, and Counted. Its
+  Flag is the latest flagged value in the window, or the reviewed flag
+  for a recent action; the main matrix keeps the current flag. Counted
+  reflects the unchanged reported contribution. Rows sort by newest Last
+  Addressed date, then descending absolute displayed flag, then natural
+  KRI number; undated rows come last. The tooltip retains the flag
+  snapshot, current flag, assessment/extraction dates, and date
+  provenance. There is a Download CSV button exporting review rows
+  across all supplied sites, independent of table filters, the expanded
+  site, and highlighting. Schema version 1 contains stable IDs,
+  current/review flags, ISO dates, action provenance, weights, exclusion
+  reasons, and full-precision reported scores with their
+  numerators/denominators. Missing values are blank. UTF-8 CSV uses
+  quoted text, escaped quotes, CRLF records, and a BOM; potentially
+  executable spreadsheet text is apostrophe-prefixed. Export never
+  recalculates scores or changes the supplied detail.
 
 - strOutputLabel:
 

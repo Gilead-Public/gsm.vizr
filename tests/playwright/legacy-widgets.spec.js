@@ -301,26 +301,32 @@ test('90-day action borders mark only the specific site KRI without score contro
   await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(4);
   await expect(overview.locator('td.group-overview--recent-action').first())
     .toHaveCSS('background-color', 'rgb(232, 245, 233)');
-  await expect(overview.locator('td.group-overview--recent-action').first()).toHaveCSS('box-shadow', 'none');
+  await expect(overview.locator('td.group-overview--recent-action').first())
+    .toHaveCSS('box-shadow', 'rgb(45, 164, 78) 0px 0px 0px 3px inset');
   await expect(overview.locator('td.group-overview--recent-action').first())
     .toHaveAttribute('title', /^Score: 1\nKRI 1: 0\.50\nEvents: 1\nParticipants: 2\nLatest action: Closed Action\. Last addressed: 2026-10-15\. Days ago: 20\.$/);
   const actionStyles = () => overview.locator('td.group-overview--recent-action').evaluateAll((cells) =>
     Object.fromEntries(cells.map((cell) => [
       `${cell.__data__.GroupID}:${cell.__data__.MetricID}`,
-      { fill: getComputedStyle(cell).backgroundColor, hover: cell.title.split('\n').at(-1),
+      { fill: getComputedStyle(cell).backgroundColor, border: getComputedStyle(cell).boxShadow,
+        hover: cell.title.split('\n').at(-1),
         accessible: cell.getAttribute('aria-description') }
     ])));
   const expectedActionStyles = {
     '1001:Analysis_kri0001': { fill: 'rgb(232, 245, 233)',
+      border: 'rgb(45, 164, 78) 0px 0px 0px 3px inset',
       hover: 'Latest action: Closed Action. Last addressed: 2026-10-15. Days ago: 20.',
       accessible: 'Latest action: Closed Action. Last addressed: 2026-10-15. Days ago: 20.' },
     '1001:Analysis_kri0003': { fill: 'rgb(255, 235, 238)',
+      border: 'rgb(207, 34, 46) 0px 0px 0px 3px inset',
       hover: 'Latest action: Open Action. Last addressed: 2026-10-15. Days ago: 20.',
       accessible: 'Latest action: Open Action. Last addressed: 2026-10-15. Days ago: 20.' },
     '1002:Analysis_kri0001': { fill: 'rgb(242, 242, 242)',
+      border: 'rgb(102, 102, 102) 0px 0px 0px 3px inset',
       hover: 'Latest action: Awaiting Triage. Last addressed: 2026-10-15. Days ago: 20.',
       accessible: 'Latest action: Awaiting Triage. Last addressed: 2026-10-15. Days ago: 20.' },
     '1002:Analysis_kri0002': { fill: 'rgb(242, 242, 242)',
+      border: 'rgb(102, 102, 102) 0px 0px 0px 3px inset',
       hover: 'Latest action: No Action. Last addressed: 2026-08-06. Days ago: 90.',
       accessible: 'Latest action: No Action. Last addressed: 2026-08-06. Days ago: 90.' }
   };

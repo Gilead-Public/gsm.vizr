@@ -28,9 +28,11 @@
 #'   each counts toward the score. Ignored when the second metric is absent
 #'   from `dfResults`. Default: NULL.
 #'   Dated detail with `ActionWindowDays`, `DaysSinceAction`,
-#'   and `LastActionedDate` adds a thin dark-grey inset border to each site/KRI
+#'   and `LastActionedDate` adds a thin state-colored inset border to each site/KRI
 #'   cell with an action recorded 0 through 90 days before the assessment date.
-#'   The tooltip includes the action date and age. This recency indicator is
+#'   Closed Action uses green, Open Action red, and other/previous states grey.
+#'   The hover shows the same latest action state, date, and age as the dropdown,
+#'   rather than a history or coverage explanation. This recency indicator is
 #'   independent of decision coverage and does not imply risk resolution.
 #'   A single "Highlight actions within 90 days" checkbox, on by default,
 #'   toggles only the border and retains its state through sorting and redraws.

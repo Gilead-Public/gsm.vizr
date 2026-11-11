@@ -137,7 +137,7 @@ test('90-day action borders mark only the specific site KRI without score contro
         EffectiveWeight: GroupID === '1001' ? 0 : 4,
         LastActionedDate: '2026-10-15', DaysSinceAction: 20,
         DecisionCoversFinding: GroupID === '1001',
-        ActionState: 'Closed Action',
+        ActionState: GroupID === '1001' ? 'Closed Action' : 'Awaiting Triage',
         ActionReason: GroupID === '1001' ? 'Recently addressed' : 'Decision coverage unknown',
         ActionAsOfDate: '2026-11-04', ActionWindowDays: 90,
         ActionRiskSignalID: 'RS-older', ActionID: 'ACT-1'
@@ -300,9 +300,29 @@ test('90-day action borders mark only the specific site KRI without score contro
   expect(await borderedCells()).toEqual(expectedBorders);
   await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(4);
   await expect(overview.locator('td.group-overview--recent-action').first())
-    .toHaveCSS('box-shadow', 'rgb(102, 102, 102) 0px 0px 0px 1px inset');
+    .toHaveCSS('box-shadow', 'rgb(46, 125, 50) 0px 0px 0px 1px inset');
   await expect(overview.locator('td.group-overview--recent-action').first())
-    .toHaveAttribute('title', /within 90 days.*2026-10-15/);
+    .toHaveAttribute('title', 'Latest action: Closed Action. Last addressed: 2026-10-15. Days ago: 20.');
+  const actionStyles = () => overview.locator('td.group-overview--recent-action').evaluateAll((cells) =>
+    Object.fromEntries(cells.map((cell) => [
+      `${cell.__data__.GroupID}:${cell.__data__.MetricID}`,
+      { border: getComputedStyle(cell).boxShadow, hover: cell.title, accessible: cell.getAttribute('aria-description') }
+    ])));
+  const expectedActionStyles = {
+    '1001:Analysis_kri0001': { border: 'rgb(46, 125, 50) 0px 0px 0px 1px inset',
+      hover: 'Latest action: Closed Action. Last addressed: 2026-10-15. Days ago: 20.',
+      accessible: 'Latest action: Closed Action. Last addressed: 2026-10-15. Days ago: 20.' },
+    '1001:Analysis_kri0003': { border: 'rgb(198, 40, 40) 0px 0px 0px 1px inset',
+      hover: 'Latest action: Open Action. Last addressed: 2026-10-15. Days ago: 20.',
+      accessible: 'Latest action: Open Action. Last addressed: 2026-10-15. Days ago: 20.' },
+    '1002:Analysis_kri0001': { border: 'rgb(102, 102, 102) 0px 0px 0px 1px inset',
+      hover: 'Latest action: Awaiting Triage. Last addressed: 2026-10-15. Days ago: 20.',
+      accessible: 'Latest action: Awaiting Triage. Last addressed: 2026-10-15. Days ago: 20.' },
+    '1002:Analysis_kri0002': { border: 'rgb(102, 102, 102) 0px 0px 0px 1px inset',
+      hover: 'Latest action: No Action. Last addressed: 2026-08-06. Days ago: 90.',
+      accessible: 'Latest action: No Action. Last addressed: 2026-08-06. Days ago: 90.' }
+  };
+  expect(await actionStyles()).toEqual(expectedActionStyles);
   expect(await overview.locator('td.group-overview--metric').evaluateAll((cells) =>
     cells.map((cell) => [cell.__data__.GroupID, cell.__data__.MetricID, getComputedStyle(cell).backgroundColor]).sort()
   )).toEqual(await page.evaluate(() => window.actionBorderBackgrounds));
@@ -324,6 +344,14 @@ test('90-day action borders mark only the specific site KRI without score contro
   expect(await overview.locator('.group-overview--comparison-detail [role="row"]').evaluateAll((rows) =>
     rows.every((row) => row.children.length === 6)
   )).toBe(true);
+  expect(await overview.locator('.group-overview--comparison-detail [role="row"]').evaluateAll((rows) =>
+    rows.every((row) => {
+      const values = [...row.children].map((cell) => cell.textContent);
+      const cell = [...row.closest('tbody').querySelectorAll('td.group-overview--metric')].find((candidate) =>
+        candidate.__data__.GroupID === '1001' && candidate.__data__.MetricID === row.dataset.metricId);
+      return cell && cell.title === `Latest action: ${values[2]}. Last addressed: ${values[3]}. Days ago: ${values[4]}.`;
+    })
+  )).toBe(true);
   await expect(overview.locator('td.group-overview--metric')).toHaveCount(14);
   const detailText = await overview.locator('.group-overview--comparison-detail').innerText();
   await highlightToggle.uncheck();
@@ -344,6 +372,7 @@ test('90-day action borders mark only the specific site KRI without score contro
   await expect(overview.locator('td.group-overview--recent-action')).toHaveCount(0);
   await highlightToggle.check();
   expect(await borderedCells()).toEqual(expectedBorders);
+  expect(await actionStyles()).toEqual(expectedActionStyles);
   await expect(overview.getByRole('columnheader', { name: 'Review Priority Score', exact: true })).toBeVisible();
   expect((await overview.locator('td.group-overview--siteRiskScore').allTextContents()).sort())
     .toEqual(baseline.sort());

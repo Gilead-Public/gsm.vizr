@@ -100,6 +100,16 @@ const addComparisonRiskDetail = function (el, input) {
     const displayedState = (row) => dateWindowMode &&
         (isMissing(row.ActionState) || ['Not flagged', 'Not assessed'].includes(row.ActionState))
         ? 'Not recorded' : row.ActionState;
+    const latestActionText = (row) => {
+        const state = displayedState(row);
+        return `Latest action: ${isMissing(state) ? 'Not recorded' : state}. ` +
+            `Last addressed: ${isMissing(row.LastActionedDate) ? '-' : row.LastActionedDate}. ` +
+            `Days ago: ${isMissing(row.DaysSinceAction) ? '-' : row.DaysSinceAction}.`;
+    };
+    const highlightColor = (row) => {
+        const state = displayedState(row);
+        return state === 'Closed Action' ? '#2e7d32' : state === 'Open Action' ? '#c62828' : '#666666';
+    };
     const groupResult = (row, metric) => input.dfResults.find((result) =>
         result.GroupID === row.GroupID && result.MetricID === metric &&
         (isMissing(row.StudyID) || isMissing(result.StudyID) || row.StudyID === result.StudyID));
@@ -234,7 +244,7 @@ const addComparisonRiskDetail = function (el, input) {
             ];
             values.forEach((value) => addCell(line, value));
             line.title = dateWindowMode
-                ? `As of: ${row.ActionAsOfDate}; latest flagged snapshot: ${row.LastFlaggedDate || '-'}; current flag: ${isMissing(row.Flag) ? '-' : row.Flag}; extraction: ${row.ActionExtractionDate || '-'}; source: ${row.ActionedDateSource || '-'}`
+                ? `${latestActionText(row)} As of: ${row.ActionAsOfDate}; latest flagged snapshot: ${row.LastFlaggedDate || '-'}; current flag: ${isMissing(row.Flag) ? '-' : row.Flag}; extraction: ${row.ActionExtractionDate || '-'}; source: ${row.ActionedDateSource || '-'}; reason: ${actionReason(row)}`
                 : '';
             grid.appendChild(line);
         });
@@ -284,13 +294,11 @@ const addComparisonRiskDetail = function (el, input) {
             const recent = row && isRecent(row);
             const highlighted = highlightRecentActions && recent;
             cell.classList.toggle('group-overview--recent-action', Boolean(highlighted));
-            cell.style.boxShadow = highlighted ? 'inset 0 0 0 1px #666666' : '';
+            cell.style.boxShadow = highlighted ? `inset 0 0 0 1px ${highlightColor(row)}` : '';
             if (row) {
-                const recency = recent
-                    ? `Action recorded within 90 days: ${row.LastActionedDate} (${row.DaysSinceAction} days before ${row.ActionAsOfDate || 'assessment'}).`
-                    : `Last addressed: ${isMissing(row.LastActionedDate) ? '-' : row.LastActionedDate}.`;
-                cell.title = `${datum.tooltipContent || ''}\n${recency} ${actionReason(row)}`;
-                cell.setAttribute('aria-description', `${recency} ${actionReason(row)}`);
+                const action = latestActionText(row);
+                cell.title = action;
+                cell.setAttribute('aria-description', action);
             }
         });
     };

@@ -62,7 +62,7 @@ drilldown; legacy exports include nonzero flags. Sites sort naturally by
 ID, then rows sort by latest addressed date, absolute review flag, and
 KRI ID. The export never recalculates scores or changes highlighting.
 
-Schema version 1 uses these ordered column groups:
+Schema version 2 uses these ordered column groups:
 
 | Group | Columns |
 |----|----|
@@ -70,7 +70,7 @@ Schema version 1 uses these ordered column groups:
 | Flags | `CurrentFlag`, `ReviewFlag`, `LastFlaggedDate`, `DaysSinceFlag` |
 | Action | `ActionState`, `ActionedFlag`, `LastAddressed`, `DaysAgo`, `ActionedDateSource`, `ActionDateIsProxy`, `ActionWindowDays` |
 | Contribution | `Weight`, `WeightMax`, `EffectiveWeight`, `Counted`, `ActionFactor` |
-| Decision | `SnapshotDecisionExcluded`, `SnapshotQuarantineBlocked`, `DecisionReason`, `DecisionCoversFinding` |
+| Decision | `SnapshotDecisionExcluded`, `DecisionReason`, `DecisionCoversFinding` |
 | Reported scores | `SiteRiskScore`, `SiteRiskNumerator`, `SiteRiskDenominator`, `ComparisonRiskScore`, `ComparisonRiskNumerator`, `ComparisonRiskDenominator`, `ComparisonRiskMetricID`, `ComparisonRiskLabel` |
 | Provenance | `ActionPolicy`, `ActionAsOfDate`, `ActionExtractionDate`, `RiskSignalID`, `ActionID` |
 

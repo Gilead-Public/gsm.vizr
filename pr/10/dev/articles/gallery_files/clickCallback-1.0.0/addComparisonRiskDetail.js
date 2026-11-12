@@ -122,7 +122,7 @@ const addComparisonRiskDetail = function (el, input) {
         (isMissing(row.StudyID) || isMissing(result.StudyID) || row.StudyID === result.StudyID));
     const downloadCsv = () => {
         const columns = [
-            ['CSVSchemaVersion', () => 1, 'number'],
+            ['CSVSchemaVersion', () => 2, 'number'],
             ['StudyID', (row) => row.StudyID || groupResult(row, comparisonMetric)?.StudyID],
             ['SnapshotDate', (row) => row.SnapshotDate || groupResult(row, comparisonMetric)?.SnapshotDate || row.ActionAsOfDate, 'date'],
             ['GroupLevel', (row) => row.GroupLevel || input.strGroupLevel || groupResult(row, comparisonMetric)?.GroupLevel],
@@ -146,7 +146,6 @@ const addComparisonRiskDetail = function (el, input) {
             ['Counted', countedLabel],
             ['ActionFactor', (row) => row.ActionFactor, 'number'],
             ['SnapshotDecisionExcluded', (row) => row.SnapshotDecisionExcluded, 'boolean'],
-            ['SnapshotQuarantineBlocked', (row) => row.SnapshotQuarantineBlocked, 'boolean'],
             ['DecisionReason', (row) => row.SnapshotDecisionReason || row.ActionReason || row.ActionCoverageReason],
             ['DecisionCoversFinding', (row) => row.DecisionCoversFinding, 'boolean'],
             ['SiteRiskScore', (row) => groupResult(row, input.strSiteRiskMetric || 'Analysis_srs0001')?.Score, 'number'],

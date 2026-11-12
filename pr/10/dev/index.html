@@ -89,7 +89,7 @@
 <h2 id="review-csv">Review CSV<a class="anchor" aria-label="anchor" href="#review-csv"></a>
 </h2>
 <p><code><a href="reference/Widget_GroupOverview.html">Widget_GroupOverview()</a></code> provides <strong>Download CSV</strong> when comparison-risk detail is supplied. It exports one row per review entry across all supplied sites, not just the expanded site or currently filtered table. Dated exports use the same inclusive 90-day flagged-or-addressed selection and ordering as the drilldown; legacy exports include nonzero flags. Sites sort naturally by ID, then rows sort by latest addressed date, absolute review flag, and KRI ID. The export never recalculates scores or changes highlighting.</p>
-<p>Schema version 1 uses these ordered column groups:</p>
+<p>Schema version 2 uses these ordered column groups:</p>
 <table class="table">
 <colgroup>
 <col width="50%">
@@ -127,7 +127,7 @@
 <tr>
 <td>Decision</td>
 <td>
-<code>SnapshotDecisionExcluded</code>, <code>SnapshotQuarantineBlocked</code>, <code>DecisionReason</code>, <code>DecisionCoversFinding</code>
+<code>SnapshotDecisionExcluded</code>, <code>DecisionReason</code>, <code>DecisionCoversFinding</code>
 </td>
 </tr>
 <tr>

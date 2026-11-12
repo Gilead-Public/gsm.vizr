@@ -196,7 +196,6 @@ test('90-day action borders mark only the specific site KRI without score contro
     exportRow.ActionedDateSource = 'ADO.Custom.SnapshotDate (proxy)';
     exportRow.ActionDateIsProxy = true;
     exportRow.SnapshotDecisionExcluded = true;
-    exportRow.SnapshotQuarantineBlocked = false;
     exportRow.SnapshotDecisionReason = 'No Action, "reviewed"\nwithin window';
     exportRow.ActionRiskSignalID = '00042';
     exportRow.ActionID = '00043';
@@ -269,7 +268,7 @@ test('90-day action borders mark only the specific site KRI without score contro
     'CurrentFlag', 'ReviewFlag', 'LastFlaggedDate', 'DaysSinceFlag', 'ActionState', 'ActionedFlag',
     'LastAddressed', 'DaysAgo', 'ActionedDateSource', 'ActionDateIsProxy', 'ActionWindowDays',
     'Weight', 'WeightMax', 'EffectiveWeight', 'Counted', 'ActionFactor', 'SnapshotDecisionExcluded',
-    'SnapshotQuarantineBlocked', 'DecisionReason', 'DecisionCoversFinding', 'SiteRiskScore',
+    'DecisionReason', 'DecisionCoversFinding', 'SiteRiskScore',
     'SiteRiskNumerator', 'SiteRiskDenominator', 'ComparisonRiskScore', 'ComparisonRiskNumerator',
     'ComparisonRiskDenominator', 'ComparisonRiskMetricID', 'ComparisonRiskLabel', 'ActionPolicy',
     'ActionAsOfDate', 'ActionExtractionDate', 'RiskSignalID', 'ActionID'
@@ -277,7 +276,7 @@ test('90-day action borders mark only the specific site KRI without score contro
   expect(csv.startsWith('\uFEFF"CSVSchemaVersion","StudyID","SnapshotDate","GroupLevel","GroupID","MetricID"')).toBe(true);
   expect(csv).toContain('"LastAddressed","DaysAgo","ActionedDateSource","ActionDateIsProxy"');
   expect(csv).toContain('"Weight","WeightMax","EffectiveWeight","Counted"');
-  expect(csv).toContain('"SnapshotDecisionExcluded","SnapshotQuarantineBlocked","DecisionReason"');
+  expect(csv).toContain('"SnapshotDecisionExcluded","DecisionReason"');
   expect(csv).toContain('"SiteRiskScore","SiteRiskNumerator","SiteRiskDenominator","ComparisonRiskScore","ComparisonRiskNumerator","ComparisonRiskDenominator"');
   expect(csv).toContain('"No Action, ""reviewed""\nwithin window"');
   expect(csv).toContain('"\'=HYPERLINK(""https://example.invalid"")"');
@@ -287,7 +286,7 @@ test('90-day action borders mark only the specific site KRI without score contro
   expect(csv).toContain('"00042","00043"');
   expect(csv).toContain('"1001","Analysis_kri0003","KRI 3",0,-2,');
   expect(csv).toContain(',100,8,8,50,4,8,"Analysis_srs0002","Review Priority Score",');
-  expect(csv.match(/^1,"TEST-STUDY"/gm)).toHaveLength(9);
+  expect(csv.match(/^2,"TEST-STUDY"/gm)).toHaveLength(9);
   expect(csv).not.toContain('"Analysis_kri0007"');
   expect(csv).not.toContain('"Analysis_kri0004"');
   expect(await values()).toEqual({ '1001': '50', '1002': '75' });

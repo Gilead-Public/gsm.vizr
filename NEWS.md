@@ -1,5 +1,8 @@
 # gsm.vizr 0.1.0
 
+* Review CSV schema version 2 removes the unused input-audit field. Review
+  selection, scores, date provenance, and highlighting are unchanged (#63).
+
 * Recent-action cells retain their pale tint and add a more visible 3px inset
   border: GitHub-style green for Closed, red for Open, and dark grey otherwise.
   Tooltip content, scores, CSV, and table sizing remain unchanged (#63).

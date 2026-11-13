@@ -1,3 +1,13 @@
+test_that("Widget_GroupOverview preserves legacy positional arguments (#63)", {
+  matched <- match.call(Widget_GroupOverview, quote(Widget_GroupOverview(
+    results, metrics, groups, "Site", "all", "InvestigatorLastName",
+    "Analysis_srs0001", "Legacy output", TRUE
+  )))
+  expect_identical(matched$strOutputLabel, "Legacy output")
+  expect_identical(matched$bDebug, TRUE)
+  expect_null(matched$strComparisonRiskMetric)
+})
+
 test_that("Widget_GroupOverview creates a valid HTML widget (#4)", {
   TestAtLogLevel()
   widget <- Widget_GroupOverview(

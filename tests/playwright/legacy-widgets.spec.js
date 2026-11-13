@@ -6,6 +6,55 @@ const fixture = (name) => 'file://' + path.resolve(__dirname, 'fixture', name);
 const ISOLATED = fixture('legacy-widgets.html');
 const GALLERY = fixture('gallery.html');
 
+test('GroupOverview score rows do not change flag counts', async ({ page }) => {
+  await page.addScriptTag({ path: path.resolve(__dirname,
+    '../../inst/htmlwidgets/lib/gsm.viz-2.4.1/index.js') });
+  const tables = await page.evaluate(() => {
+    const render = (scoreFlag) => {
+      const host = document.createElement('div');
+      document.body.appendChild(host);
+      gsmViz.default.groupOverview(host, [
+        { GroupID: '1001', GroupLevel: 'Site', MetricID: 'kri', Metric: 1, Score: 2, Flag: 2 },
+        { GroupID: '1001', GroupLevel: 'Site', MetricID: 'srs', Metric: 100, Score: 100, Flag: scoreFlag },
+        { GroupID: '1001', GroupLevel: 'Site', MetricID: 'adjusted', Metric: 50, Score: 50, Flag: scoreFlag }
+      ], {
+        GroupLevel: 'Site', SiteRiskScoreMetricID: 'srs',
+        ComparisonRiskScoreMetricID: 'adjusted'
+      }, [{ GroupID: '1001', GroupLevel: 'Site', Param: 'InvestigatorLastName', Value: 'Example' }],
+      [{ MetricID: 'kri', Metric: 'KRI', Abbreviation: 'KRI', GroupLevel: 'Site', Priority: 1 }]);
+      return [...host.querySelectorAll('tbody td')].map((cell) => cell.textContent);
+    };
+    return [render(null), render(2), render(1), render(0)];
+  });
+  tables.slice(1).forEach((table) => expect(table).toEqual(tables[0]));
+});
+
+test('GroupOverview keeps comparison column stable after filtering', async ({ page }) => {
+  await page.addScriptTag({ path: path.resolve(__dirname,
+    '../../inst/htmlwidgets/lib/gsm.viz-2.4.1/index.js') });
+  await page.evaluate(() => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const results = ['1001', '1002'].flatMap((GroupID) => [
+      { GroupID, GroupLevel: 'Site', MetricID: 'kri', Metric: 1, Score: 2, Flag: 2 },
+      { GroupID, GroupLevel: 'Site', MetricID: 'srs', Metric: 100, Score: 100, Flag: null }
+    ]);
+    results.push({ GroupID: '1001', GroupLevel: 'Site', MetricID: 'adjusted', Metric: 50, Score: 50, Flag: null });
+    const instance = gsmViz.default.groupOverview(host, results, {
+      GroupLevel: 'Site', SiteRiskScoreMetricID: 'srs',
+      ComparisonRiskScoreMetricID: 'adjusted'
+    }, ['1001', '1002'].map((GroupID) => ({
+      GroupID, GroupLevel: 'Site', Param: 'InvestigatorLastName', Value: GroupID
+    })), [{ MetricID: 'kri', Metric: 'KRI', Abbreviation: 'KRI', GroupLevel: 'Site', Priority: 1 }]);
+    instance.updateTable(results.filter((row) => row.GroupID === '1002'));
+  });
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  const columns = await page.locator('thead th').count();
+  await expect(page.locator('tbody tr td')).toHaveCount(columns);
+  await expect(page.locator('th.group-overview--comparisonRiskScore')).toHaveCount(1);
+  await expect(page.locator('td.group-overview--comparisonRiskScore')).toHaveCount(1);
+});
+
 // `.group-overview` and `.rbm-viz--example` are the only selectors main.css defines,
 // and no other stylesheet on these pages declares them. Reading the CSSOM rather than
 // looking for a <link href> is deliberate: the fixtures render self-contained, so every

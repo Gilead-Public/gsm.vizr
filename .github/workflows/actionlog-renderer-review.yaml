@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: Gilead-Public/gsm.viz
-          ref: e28c329fa6380511b0be2e54ccd41a16e733b635
+          ref: ac1e0734d91480a031621f52e12c4b6e7e15bb5a
           path: renderer
           persist-credentials: false
       - uses: actions/setup-node@v4

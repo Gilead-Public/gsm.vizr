@@ -17,11 +17,13 @@ test('GroupOverview score rows do not change flag counts', async ({ page }) => {
         { GroupID: '1001', GroupLevel: 'Site', MetricID: 'kri', Metric: 1, Score: 2, Flag: 2 },
         { GroupID: '1001', GroupLevel: 'Site', MetricID: 'srs', Metric: 100, Score: 100, Flag: scoreFlag },
         { GroupID: '1001', GroupLevel: 'Site', MetricID: 'adjusted', Metric: 50, Score: 50, Flag: scoreFlag }
-      ], {
+      ].map((row) => ({ StudyID: 'EXAMPLE', SnapshotDate: '2026-11-04',
+        Numerator: 1, Denominator: 1, ...row })), {
         GroupLevel: 'Site', SiteRiskScoreMetricID: 'srs',
         ComparisonRiskScoreMetricID: 'adjusted'
       }, [{ GroupID: '1001', GroupLevel: 'Site', Param: 'InvestigatorLastName', Value: 'Example' }],
-      [{ MetricID: 'kri', Metric: 'KRI', Abbreviation: 'KRI', GroupLevel: 'Site', Priority: 1 }]);
+      [{ MetricID: 'kri', Metric: 'KRI', Abbreviation: 'KRI', GroupLevel: 'Site', Priority: 1,
+        Numerator: 'Events', Denominator: 'Participants', Score: 'Score', Threshold: '1,2' }]);
       return [...host.querySelectorAll('tbody td')].map((cell) => cell.textContent);
     };
     return [render(null), render(2), render(1), render(0)];
@@ -40,13 +42,16 @@ test('GroupOverview keeps comparison column stable after filtering', async ({ pa
       { GroupID, GroupLevel: 'Site', MetricID: 'srs', Metric: 100, Score: 100, Flag: null }
     ]);
     results.push({ GroupID: '1001', GroupLevel: 'Site', MetricID: 'adjusted', Metric: 50, Score: 50, Flag: null });
-    const instance = gsmViz.default.groupOverview(host, results, {
+    const completeResults = results.map((row) => ({ StudyID: 'EXAMPLE', SnapshotDate: '2026-11-04',
+      Numerator: 1, Denominator: 1, ...row }));
+    const instance = gsmViz.default.groupOverview(host, completeResults, {
       GroupLevel: 'Site', SiteRiskScoreMetricID: 'srs',
       ComparisonRiskScoreMetricID: 'adjusted'
     }, ['1001', '1002'].map((GroupID) => ({
       GroupID, GroupLevel: 'Site', Param: 'InvestigatorLastName', Value: GroupID
-    })), [{ MetricID: 'kri', Metric: 'KRI', Abbreviation: 'KRI', GroupLevel: 'Site', Priority: 1 }]);
-    instance.updateTable(results.filter((row) => row.GroupID === '1002'));
+    })), [{ MetricID: 'kri', Metric: 'KRI', Abbreviation: 'KRI', GroupLevel: 'Site', Priority: 1,
+      Numerator: 'Events', Denominator: 'Participants', Score: 'Score', Threshold: '1,2' }]);
+    instance.updateTable(completeResults.filter((row) => row.GroupID === '1002'));
   });
   await expect(page.locator('tbody tr')).toHaveCount(1);
   const columns = await page.locator('thead th').count();

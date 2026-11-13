@@ -27481,7 +27481,10 @@ var gsmViz = (() => {
         (result) => result.GroupID === group2.GroupID
       );
       const signalResults = groupResults.filter(
-        (result) => ![config.SiteRiskScoreMetricID, config.ComparisonRiskScoreMetricID].includes(result.MetricID)
+        (result) => ![
+          config.SiteRiskScoreMetricID,
+          config.ComparisonRiskScoreMetricID
+        ].includes(result.MetricID)
       );
       group2.nRedFlags = signalResults.filter(
         (result) => Math.abs(parseInt(result.Flag)) === 2
@@ -27559,9 +27562,18 @@ var gsmViz = (() => {
     const riskScoreResult = groupResults.find(
       (result) => result.MetricID === config.SiteRiskScoreMetricID
     );
-    const signalResults = groupResults.filter((result) => ![config.SiteRiskScoreMetricID, config.ComparisonRiskScoreMetricID].includes(result.MetricID));
-    const amberFlags = signalResults.filter((result) => Math.abs(parseInt(result.Flag)) === 1);
-    const redFlags = signalResults.filter((result) => Math.abs(parseInt(result.Flag)) === 2);
+    const signalResults = groupResults.filter(
+      (result) => ![
+        config.SiteRiskScoreMetricID,
+        config.ComparisonRiskScoreMetricID
+      ].includes(result.MetricID)
+    );
+    const amberFlags = signalResults.filter(
+      (result) => Math.abs(parseInt(result.Flag)) === 1
+    );
+    const redFlags = signalResults.filter(
+      (result) => Math.abs(parseInt(result.Flag)) === 2
+    );
     const metricLookup = metricMetadata ? metricMetadata.reduce((acc, metric) => {
       acc[metric.MetricID] = {
         name: metric.Metric,
@@ -27795,7 +27807,7 @@ var gsmViz = (() => {
         };
         datum2.value = datum2[column.valueKey];
         datum2.text = datum2.value;
-        if (["siteRiskScore", "comparisonRiskScore"].includes(column.valueKey) && datum2.value !== null && !isNaN(datum2.value)) {
+        if (column.valueKey === "siteRiskScore" && datum2.value !== null && !isNaN(datum2.value)) {
           datum2.text = Math.round(parseFloat(datum2.value));
         }
         datum2.sortValue = column.type === "metric" ? Math.abs(parseFloat(datum2.value)) : datum2.value;
@@ -27817,7 +27829,7 @@ var gsmViz = (() => {
 
   // src/groupOverview/makeTable/addHeaderRow.js
   function addHeaderRow(thead, columns) {
-    const headerRow = thead.append("tr").selectAll("th").data(columns).join("th").attr("class", (d) => `group-overview--${d.type} group-overview--${d.valueKey}`).classed("group-overview--tooltip", (d) => d.headerTooltip !== null).text((d) => d.label).attr("title", (d) => d.headerTooltip);
+    const headerRow = thead.append("tr").selectAll("th").data(columns).join("th").attr("class", (column) => `group-overview--${column.type} group-overview--${column.valueKey}`).classed("group-overview--tooltip", (d) => d.headerTooltip !== null).text((d) => d.label).attr("title", (d) => d.headerTooltip);
     return headerRow;
   }
 
@@ -27841,12 +27853,12 @@ var gsmViz = (() => {
         return id2;
       }
     ).join("td").text((d) => d.text === "NA" ? "-" : d.text).attr("class", (d) => d.class).classed("group-overview--tooltip", (d) => {
-      if (["siteRiskScore", "comparisonRiskScore"].includes(d.column.valueKey)) {
+      if (d.column.valueKey === "siteRiskScore") {
         return false;
       }
       return d.tooltip;
     }).attr("title", (d) => {
-      if (["siteRiskScore", "comparisonRiskScore"].includes(d.column.valueKey)) {
+      if (d.column.valueKey === "siteRiskScore") {
         return null;
       }
       return d.tooltip ? d.tooltipContent : null;
@@ -27971,9 +27983,7 @@ var gsmViz = (() => {
     const groupSelected = new CustomEvent("groupSelected", {
       bubbles: true
     });
-    cells.filter(".group-overview--group").filter(
-      (d) => !["siteRiskScore", "comparisonRiskScore"].includes(d.column.valueKey)
-    ).on("click", function(event, d) {
+    cells.filter(".group-overview--group").filter((d) => d.column.valueKey !== "siteRiskScore").on("click", function(event, d) {
       config.groupClickCallback({
         GroupLevel: config.GroupLevel,
         GroupID: d.GroupID,

@@ -375,7 +375,7 @@ const addComparisonRiskDetail = function (el, input) {
         tableScroll.style.cssText = 'max-width: 100%; overflow-x: auto;';
         tableScroll.tabIndex = 0;
         tableScroll.setAttribute('role', 'region');
-        tableScroll.setAttribute('aria-label', 'Site risk and review priority scores');
+        tableScroll.setAttribute('aria-label', `Site Risk Score and ${input.strComparisonRiskLabel || 'Adjusted Risk Score'}`);
         table.before(tableScroll);
         tableScroll.appendChild(table);
     }

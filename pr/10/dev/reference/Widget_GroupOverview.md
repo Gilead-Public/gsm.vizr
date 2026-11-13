@@ -16,12 +16,12 @@ Widget_GroupOverview(
   strGroupSubset = "red",
   strGroupLabelKey = "InvestigatorLastName",
   strSiteRiskMetric = "Analysis_srs0001",
-  strComparisonRiskMetric = NULL,
-  strComparisonRiskLabel = "Adjusted Risk Score",
-  dfComparisonRiskDetail = NULL,
   strOutputLabel = paste0(fontawesome::fa("table", fill = "#337ab7"), "  ",
     strGroupLevel, " Overview"),
   bDebug = FALSE,
+  strComparisonRiskMetric = NULL,
+  strComparisonRiskLabel = "Adjusted Risk Score",
+  dfComparisonRiskDetail = NULL,
   dfResultsHistory = NULL,
   ...
 )
@@ -130,9 +130,9 @@ Widget_GroupOverview(
   snapshot, current flag, assessment/extraction dates, and date
   provenance. There is a Download CSV button exporting review rows
   across all supplied sites, independent of table filters, the expanded
-  site, and highlighting. Schema version 1 contains stable IDs,
-  current/review flags, ISO dates, action provenance, weights, exclusion
-  reasons, and full-precision reported scores with their
+  site, and highlighting. Schema version 2 contains 39 fields: stable
+  IDs, current/review flags, ISO dates, action provenance, weights,
+  exclusion reasons, and full-precision reported scores with their
   numerators/denominators. Missing values are blank. UTF-8 CSV uses
   quoted text, escaped quotes, CRLF records, and a BOM; potentially
   executable spreadsheet text is apostrophe-prefixed. Export never

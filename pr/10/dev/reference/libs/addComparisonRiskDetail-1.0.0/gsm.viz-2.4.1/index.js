@@ -27480,13 +27480,16 @@ var gsmViz = (() => {
       const groupResults = _results_.filter(
         (result) => result.GroupID === group2.GroupID
       );
-      group2.nRedFlags = groupResults.filter(
+      const signalResults = groupResults.filter(
+        (result) => ![config.SiteRiskScoreMetricID, config.ComparisonRiskScoreMetricID].includes(result.MetricID)
+      );
+      group2.nRedFlags = signalResults.filter(
         (result) => Math.abs(parseInt(result.Flag)) === 2
       ).length;
-      group2.nAmberFlags = groupResults.filter(
+      group2.nAmberFlags = signalResults.filter(
         (result) => Math.abs(parseInt(result.Flag)) === 1
       ).length;
-      group2.nGreenFlags = groupResults.filter(
+      group2.nGreenFlags = signalResults.filter(
         (result) => Math.abs(parseInt(result.Flag)) === 0
       ).length;
       if (config.GroupLevel === "Site") {
@@ -27556,8 +27559,9 @@ var gsmViz = (() => {
     const riskScoreResult = groupResults.find(
       (result) => result.MetricID === config.SiteRiskScoreMetricID
     );
-    const amberFlags = groupResults.filter((result) => Math.abs(parseInt(result.Flag)) === 1).filter((result) => result.MetricID !== config.SiteRiskScoreMetricID);
-    const redFlags = groupResults.filter((result) => Math.abs(parseInt(result.Flag)) === 2).filter((result) => result.MetricID !== config.SiteRiskScoreMetricID);
+    const signalResults = groupResults.filter((result) => ![config.SiteRiskScoreMetricID, config.ComparisonRiskScoreMetricID].includes(result.MetricID));
+    const amberFlags = signalResults.filter((result) => Math.abs(parseInt(result.Flag)) === 1);
+    const redFlags = signalResults.filter((result) => Math.abs(parseInt(result.Flag)) === 2);
     const metricLookup = metricMetadata ? metricMetadata.reduce((acc, metric) => {
       acc[metric.MetricID] = {
         name: metric.Metric,
@@ -27605,7 +27609,7 @@ var gsmViz = (() => {
   }
 
   // src/groupOverview/defineColumns/defineGroupColumns.js
-  function defineGroupColumns(groupMetadata, config, results = null, metricMetadata = null) {
+  function defineGroupColumns(groupMetadata, config, results = null, metricMetadata = null, scoreResults = results) {
     let columns = [
       {
         label: "Group",
@@ -27660,7 +27664,7 @@ var gsmViz = (() => {
         (groupMetadatum) => groupMetadatum.hasOwnProperty(column.valueKey)
       )
     );
-    const hasSiteRiskScoreData = results && results.some(
+    const hasSiteRiskScoreData = scoreResults && scoreResults.some(
       (result) => result.MetricID === config.SiteRiskScoreMetricID
     );
     const shouldAddRiskScoreColumn = config.GroupLevel === "Site" && hasSiteRiskScoreData;
@@ -27689,7 +27693,7 @@ var gsmViz = (() => {
       }
       columns.push(riskScoreColumn);
     }
-    const hasComparisonRiskScoreData = results && config.ComparisonRiskScoreMetricID && results.some(
+    const hasComparisonRiskScoreData = scoreResults && config.ComparisonRiskScoreMetricID && scoreResults.some(
       (result) => result.MetricID === config.ComparisonRiskScoreMetricID
     );
     if (config.GroupLevel === "Site" && hasComparisonRiskScoreData) {
@@ -27742,12 +27746,13 @@ var gsmViz = (() => {
   }
 
   // src/groupOverview/defineColumns.js
-  function defineColumns(groupMetadata, metricMetadata, results, config) {
+  function defineColumns(groupMetadata, metricMetadata, results, config, scoreResults = results) {
     const groupColumns = defineGroupColumns(
       groupMetadata,
       config,
       results,
-      metricMetadata
+      metricMetadata,
+      scoreResults
     );
     const metricColumns = defineMetricColumns(metricMetadata, results, config);
     const columns = [...groupColumns, ...metricColumns];
@@ -27812,7 +27817,7 @@ var gsmViz = (() => {
 
   // src/groupOverview/makeTable/addHeaderRow.js
   function addHeaderRow(thead, columns) {
-    const headerRow = thead.append("tr").selectAll("th").data(columns).join("th").attr("class", (d) => `group-overview--${d.type}`).classed("group-overview--tooltip", (d) => d.headerTooltip !== null).text((d) => d.label).attr("title", (d) => d.headerTooltip);
+    const headerRow = thead.append("tr").selectAll("th").data(columns).join("th").attr("class", (d) => `group-overview--${d.type} group-overview--${d.valueKey}`).classed("group-overview--tooltip", (d) => d.headerTooltip !== null).text((d) => d.label).attr("title", (d) => d.headerTooltip);
     return headerRow;
   }
 
@@ -28082,7 +28087,8 @@ var gsmViz = (() => {
       groupMetadata,
       this._metricMetadata_,
       _results_,
-      this.config
+      this.config,
+      this._results_
     );
     const rows = structureData3(_results_, columns, groupMetadata, this.config);
     const tbody = this.table.select("tbody");

@@ -108,7 +108,7 @@ moves together.
 
 The comparison-score renderer source is proposed in
 [gsm.viz#620](https://github.com/Gilead-Public/gsm.viz/pull/620), commit
-`e28c329fa6380511b0be2e54ccd41a16e733b635`, based on `v2.4.1`. From that
+`ac1e0734d91480a031621f52e12c4b6e7e15bb5a`, based on `v2.4.1`. From that
 source checkout, run `npm ci` and `npm run bundle`, then copy `index.js`
 and `index.js.map` together into `inst/htmlwidgets/lib/gsm.viz-2.4.1/`.
 Merge the upstream source change before merging the comparison-score

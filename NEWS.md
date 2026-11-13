@@ -1,28 +1,5 @@
 # gsm.vizr 0.1.0
 
-* Review CSV schema version 2 removes the unused input-audit field. Review
-  selection, scores, date provenance, and highlighting are unchanged (#63).
-
-* Recent-action cells retain their pale tint and add a more visible 3px inset
-  border: GitHub-style green for Closed, red for Open, and dark grey otherwise.
-  Tooltip content, scores, CSV, and table sizing remain unchanged (#63).
-
-* Retained the original KRI hover details and corrected only the final latest
-  action line. Recent-action borders are replaced by very light green/red/grey
-  cell tints for Closed/Open/other states. Turning highlighting off restores
-  the original background; flag symbols, CSV, and scores are unchanged (#63).
-
-* KRI-cell action hovers now match the dropdown's latest action state, date,
-  and age. Recent Closed Actions have green borders, Open Actions red, and
-  No Action/previous/other states retain grey. The highlight toggle, CSV,
-  score contributions, and original flag backgrounds are unchanged (#63).
-
-* Restored the comparison-drilldown Download CSV control. Version 1 exports
-  review rows across all supplied sites with IDs, flags, date provenance,
-  weights, exclusion reasons, and reported score components. UTF-8 CSV protects
-  spreadsheet text from formula injection. Downloading does not change scores,
-  highlighting, filters, or supplied detail (#63).
-
 Initial release: an htmlwidgets interface to the gsm.viz JavaScript library,
 hosting both of its chart generations against one vendored gsm.viz 2.4.1 bundle.
 
@@ -37,22 +14,11 @@ hosting both of its chart generations against one vendored gsm.viz 2.4.1 bundle.
   `Widget_ScatterPlot`, `Widget_TimeSeries`, `Widget_GroupOverview`, their Shiny
   bindings, `MakeChartConfig()`, and the shared widget-control JS/CSS.
 * Added optional comparison-risk-score support to `Widget_GroupOverview()`.
-  When the configured metric is present, its column appears immediately after
-  the existing Site Risk Score; the default layout remains unchanged (#63).
-  With the optional `dfComparisonRiskDetail`, clicking a score in that column
-  lists the KRIs behind it, their action state, and whether each counts toward
-  the score.
-* Dated comparison detail adds a thin dark-grey inset border to each site/KRI
-  cell with a recorded action within an inclusive 90-day window. The tooltip
-  shows the date and age; borders do not imply decision coverage or risk
-  resolution. One default-on checkbox toggles highlighting only. There are no
-  window, hide, or score-exclusion controls. Reported
-  scores, flag colors, and contributions remain unchanged. Borders survive
-  redraws and the accessible scroll region supports mobile tables. The compact
-  six-column drilldown includes KRIs flagged or actioned in the last 90 days,
-  using optional `dfResultsHistory` for prior flags, including now-green and
-  historical-only findings. Reported scores
-  and complete supplied evidence remain unchanged (#63).
+  Displays adjacent scores with per-KRI action and contribution drilldowns (#63).
+* Added latest-action tooltips and toggleable 90-day highlighting with
+  green, red and grey cell tints and borders for action states (#63).
+* Added review CSV downloads (schema version 2) with flags, action states,
+  dates, weights and score contributions (#63).
 * Takes gsm.core (>= 1.3.1) in Imports, alongside dplyr, fontawesome, lifecycle,
   magrittr, purrr, rlang, and tidyr.
 

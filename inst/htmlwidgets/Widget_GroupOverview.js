@@ -2,8 +2,10 @@ HTMLWidgets.widget({
     name: 'Widget_GroupOverview',
     type: 'output',
     factory: function(el, width, height) {
+        let cleanupDetail = null;
         return {
             renderValue: function(input) {
+                if (cleanupDetail) cleanupDetail();
                 if (input.bDebug)
                     console.log(input);
 
@@ -14,7 +16,9 @@ HTMLWidgets.widget({
                     {
                         GroupLevel: input.strGroupLevel,
                         groupLabelKey: input.strGroupLabelKey,
-                        SiteRiskScoreMetricID: input.strSiteRiskMetric
+                        SiteRiskScoreMetricID: input.strSiteRiskMetric,
+                        ComparisonRiskScoreMetricID: input.strComparisonRiskMetric,
+                        ComparisonRiskScoreLabel: input.strComparisonRiskLabel
                     },
                     input.dfGroups,
                     input.dfMetrics
@@ -34,6 +38,9 @@ HTMLWidgets.widget({
                 );
 
                 instance.updateTable(updatedResults);
+
+                // Explain the comparison risk score when detail is supplied.
+                cleanupDetail = addComparisonRiskDetail(el, input);
             },
             resize: function(width, height) {
             }

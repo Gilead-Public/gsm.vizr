@@ -31,6 +31,31 @@ test('GroupOverview score rows do not change flag counts', async ({ page }) => {
   tables.slice(1).forEach((table) => expect(table).toEqual(tables[0]));
 });
 
+test('GroupOverview rounds fractional comparison risk scores like Risk Score', async ({ page }) => {
+  await page.addScriptTag({ path: path.resolve(__dirname,
+    '../../inst/htmlwidgets/lib/gsm.viz-2.4.1/index.js') });
+  const text = await page.evaluate(() => {
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    gsmViz.default.groupOverview(host, [
+      { GroupID: '1001', GroupLevel: 'Site', MetricID: 'kri', Metric: 1, Score: 2, Flag: 2 },
+      { GroupID: '1001', GroupLevel: 'Site', MetricID: 'srs', Metric: 62.5, Score: 62.5, Flag: null },
+      { GroupID: '1001', GroupLevel: 'Site', MetricID: 'adjusted', Metric: 125 / 3, Score: 125 / 3, Flag: null }
+    ].map((row) => ({ StudyID: 'EXAMPLE', SnapshotDate: '2026-11-04',
+      Numerator: 1, Denominator: 1, ...row })), {
+      GroupLevel: 'Site', SiteRiskScoreMetricID: 'srs',
+      ComparisonRiskScoreMetricID: 'adjusted'
+    }, [{ GroupID: '1001', GroupLevel: 'Site', Param: 'InvestigatorLastName', Value: 'Example' }],
+    [{ MetricID: 'kri', Metric: 'KRI', Abbreviation: 'KRI', GroupLevel: 'Site', Priority: 1,
+      Numerator: 'Events', Denominator: 'Participants', Score: 'Score', Threshold: '1,2' }]);
+    return {
+      site: host.querySelector('td.group-overview--siteRiskScore').textContent,
+      comparison: host.querySelector('td.group-overview--comparisonRiskScore').textContent
+    };
+  });
+  expect(text).toEqual({ site: '63', comparison: '42' });
+});
+
 test('GroupOverview keeps comparison column stable after filtering', async ({ page }) => {
   await page.addScriptTag({ path: path.resolve(__dirname,
     '../../inst/htmlwidgets/lib/gsm.viz-2.4.1/index.js') });

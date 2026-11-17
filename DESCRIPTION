@@ -40,7 +40,7 @@ Imports:
     rlang,
     tidyr
 Remotes: 
-    gsm.core=Gilead-Public/gsm.core@1d66c3d646eadf96f88a3c24177603efb41a1812
+    gsm.core=Gilead-Public/gsm.core@a9750971fc24c1aae34046407a2ff7f765a5c583
 VignetteBuilder: knitr
 URL: https://github.com/Gilead-Public/gsm.vizr, https://gilead-public.github.io/gsm.vizr/
 BugReports: https://github.com/Gilead-Public/gsm.vizr/issues

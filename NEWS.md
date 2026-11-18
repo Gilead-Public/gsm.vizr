@@ -16,9 +16,8 @@ hosting both of its chart generations against one vendored gsm.viz 2.4.1 bundle.
 * Added optional comparison-risk-score support to `Widget_GroupOverview()`.
   Displays adjacent scores with per-KRI action and contribution drilldowns (#63).
 * Added latest-action tooltips and toggleable 90-day highlighting with
-  green, red and grey cell tints and borders for action states (#63).
-* Added review CSV downloads (schema version 2) with flags, action states,
-  dates, weights and score contributions (#63).
+  green, red and grey cell tints and borders for action states, plus a legend
+  for those colors (#63).
 * Takes gsm.core (>= 1.3.1) in Imports, alongside dplyr, fontawesome, lifecycle,
   magrittr, purrr, rlang, and tidyr.
 

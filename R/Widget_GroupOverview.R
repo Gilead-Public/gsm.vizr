@@ -38,6 +38,7 @@
 #'   independent of decision coverage and does not imply risk resolution.
 #'   A single "Highlight actions within 90 days" checkbox, on by default,
 #'   toggles the border and tint, restoring the original styling when off.
+#'   A legend beside it shows the Closed, Open, and other action-state colors.
 #'   All matrix cells remain visible. The expanded breakdown includes KRIs
 #'   flagged or actioned in any snapshot within the inclusive 90-day history,
 #'   including findings that are now green and historical-only results.
@@ -52,15 +53,7 @@
 #'   unchanged reported contribution. Rows sort by newest Last Addressed date,
 #'   then descending absolute displayed flag, then natural KRI number; undated
 #'   rows come last. The tooltip retains the flag snapshot,
-#'   current flag, assessment/extraction dates, and date provenance. There is
-#'   a Download CSV button exporting review rows across all supplied sites,
-#'   independent of table filters, the expanded site, and highlighting.
-#'   Schema version 2 contains 39 fields: stable IDs, current/review flags, ISO dates,
-#'   action provenance, weights, exclusion reasons, and full-precision reported
-#'   scores with their numerators/denominators. Missing values are blank.
-#'   UTF-8 CSV uses quoted text, escaped quotes, CRLF records, and a BOM;
-#'   potentially executable spreadsheet text is apostrophe-prefixed. Export
-#'   never recalculates scores or changes the supplied detail.
+#'   current flag, assessment/extraction dates, and date provenance.
 #' @param ... `any` Additional chart configuration settings.
 #' @param dfResultsHistory Optional persisted results across snapshots. Used
 #'   only for dated drilldown flag history within 90 days of its assessment
@@ -282,7 +275,6 @@ Widget_GroupOverview <- function(
     strComparisonRiskMetric = strComparisonRiskMetric,
     strComparisonRiskLabel = strComparisonRiskLabel,
     dfComparisonRiskDetail = dfComparisonRiskDetail,
-    strDownloadIcon = as.character(fontawesome::fa("download")),
     bDebug = bDebug
   )
 

@@ -319,7 +319,7 @@ test('90-day action borders mark only the specific site KRI without score contro
   const legend = overview.getByRole('list', { name: 'Highlighted KRI legend' });
   await expect(legend).toBeVisible();
   expect(await legend.getByRole('listitem').allTextContents())
-    .toEqual(['Closed action', 'Open action', 'Other action state']);
+    .toEqual(['Closed action', 'Open action', 'No Action']);
   expect(await legend.locator('.group-overview--action-legend-swatch').evaluateAll((swatches) =>
     swatches.map((swatch) => [getComputedStyle(swatch).backgroundColor, getComputedStyle(swatch).boxShadow])
   )).toEqual([

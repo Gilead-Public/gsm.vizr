@@ -29,22 +29,11 @@ test_that("Widget_GroupOverview returns expected data (#4)", {
     strGroupLevel = "Site"
   )
 
+  # The widget keeps every input column (gsm.core test data may add more over
+  # time, e.g. CalculateChange() deltas) and appends the weights.
   expect_named(
     jsonlite::fromJSON(widget$x$dfResults),
-    c(
-      "GroupID",
-      "GroupLevel",
-      "Numerator",
-      "Denominator",
-      "Metric",
-      "Score",
-      "Flag",
-      "MetricID",
-      "SnapshotDate",
-      "StudyID",
-      "Weight",
-      "WeightMax"
-    )
+    c(names(gsm.core::reportingResults), "Weight", "WeightMax")
   )
 
   expect_s3_class(jsonlite::fromJSON(widget$x$dfGroups), "data.frame")

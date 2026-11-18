@@ -15,6 +15,10 @@ Widget_GroupOverview(
   strOutputLabel = paste0(fontawesome::fa("table", fill = "#337ab7"), "  ",
     strGroupLevel, " Overview"),
   bDebug = FALSE,
+  strComparisonRiskMetric = NULL,
+  strComparisonRiskLabel = "Adjusted Risk Score",
+  dfComparisonRiskDetail = NULL,
+  dfResultsHistory = NULL,
   ...
 )
 }
@@ -56,6 +60,52 @@ columns: \code{GroupID}, \code{GroupLevel}, \code{Param}, \code{Value}.}
 
 \item{bDebug}{\code{logical} Print debug messages? Default: \code{FALSE}.}
 
+\item{strComparisonRiskMetric}{\code{character} Optional metric ID for a second
+risk score displayed immediately after the site risk score.}
+
+\item{strComparisonRiskLabel}{\code{character} Label for the comparison risk score
+column. Default: 'Adjusted Risk Score'.}
+
+\item{dfComparisonRiskDetail}{\code{data.frame} Optional per-KRI detail behind the
+comparison risk score, such as \code{gsm.kri::MakeActionRiskScoreDetail()}.
+Requires columns \code{GroupID}, \code{MetricID}, \code{Weight}, \code{EffectiveWeight}, and
+\code{ActionState}; \code{Flag} and \code{ActionSnapshotDate} are shown when present.
+When supplied, clicking a score in the second risk score column opens a
+row under that group listing its KRIs, their action state, and whether
+each counts toward the score. Ignored when the second metric is absent
+from \code{dfResults}. Default: NULL.
+Dated detail with \code{ActionWindowDays}, \code{DaysSinceAction},
+and \code{LastActionedDate} adds a pale state-colored background tint to each site/KRI
+cell with an action recorded 0 through 90 days before the assessment date.
+Closed Action uses pale green, Open Action pale red, and other/previous states pale grey.
+A 3px inset border uses bright green for Closed, bright red for Open,
+and dark grey otherwise, without changing cell dimensions.
+The original KRI hover details are retained; only the final action line
+shows the same latest state, date, and age as the dropdown. This recency indicator is
+independent of decision coverage and does not imply risk resolution.
+A single "Highlight actions within 90 days" checkbox, on by default,
+toggles the border and tint, restoring the original styling when off.
+A legend beside it shows the Closed Action, Open Action, and No Action colors.
+All matrix cells remain visible. The expanded breakdown includes KRIs
+flagged or actioned in any snapshot within the inclusive 90-day history,
+including findings that are now green and historical-only results.
+\code{dfResultsHistory} supplies flag snapshots; explicit action dates supply
+action recency. Items with neither recent evidence are omitted.
+There are no window, hide, or score-exclusion controls; reported scores,
+flag colors, and contribution fields are never changed by the widget.
+Highlighting survives sorting and redraws. The dated breakdown has six columns:
+KRI, Flag, Action state, Last Addressed, Days Ago, and Counted. Its Flag is
+the latest flagged value in the window, or the reviewed flag for a recent
+action; the main matrix keeps the current flag. Counted reflects the
+unchanged reported contribution. Rows sort by newest Last Addressed date,
+then descending absolute displayed flag, then natural KRI number; undated
+rows come last. The tooltip retains the flag snapshot,
+current flag, assessment/extraction dates, and date provenance.}
+
+\item{dfResultsHistory}{Optional persisted results across snapshots. Used
+only for dated drilldown flag history within 90 days of its assessment
+date; defaults to \code{dfResults}. Does not recalculate reported scores.}
+
 \item{...}{\code{any} Additional chart configuration settings.}
 }
 \description{
@@ -89,5 +139,15 @@ Widget_GroupOverview(
   dfGroups = gsm.core::reportingGroups,
   strGroupLevel = "Country"
 )
+
+# add a second score beside the existing Site Risk Score when available
+\dontrun{
+Widget_GroupOverview(
+  dfResults = results_with_srs0002,
+  dfMetrics = gsm.core::reportingMetrics,
+  dfGroups = gsm.core::reportingGroups,
+  strComparisonRiskMetric = "Analysis_srs0002"
+)
+}
 
 }

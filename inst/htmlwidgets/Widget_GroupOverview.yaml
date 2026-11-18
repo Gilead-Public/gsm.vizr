@@ -8,3 +8,7 @@ dependencies:
     version: 1.0.0
     src: 'htmlwidgets/lib'
     script: 'addGroupSubset.js'
+  - name: addComparisonRiskDetail
+    version: 1.0.0
+    src: 'htmlwidgets/lib'
+    script: 'addComparisonRiskDetail.js'

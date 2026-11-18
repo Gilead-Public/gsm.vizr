@@ -122,14 +122,14 @@ Widget_GroupOverview(
   recency indicator is independent of decision coverage and does not
   imply risk resolution. A single "Highlight actions within 90 days"
   checkbox, on by default, toggles the border and tint, restoring the
-  original styling when off. A legend beside it shows the Closed, Open,
-  and other action-state colors. All matrix cells remain visible. The
-  expanded breakdown includes KRIs flagged or actioned in any snapshot
-  within the inclusive 90-day history, including findings that are now
-  green and historical-only results. `dfResultsHistory` supplies flag
-  snapshots; explicit action dates supply action recency. Items with
-  neither recent evidence are omitted. There are no window, hide, or
-  score-exclusion controls; reported scores, flag colors, and
+  original styling when off. A legend beside it shows the Closed action,
+  Open action, and No Action colors. All matrix cells remain visible.
+  The expanded breakdown includes KRIs flagged or actioned in any
+  snapshot within the inclusive 90-day history, including findings that
+  are now green and historical-only results. `dfResultsHistory` supplies
+  flag snapshots; explicit action dates supply action recency. Items
+  with neither recent evidence are omitted. There are no window, hide,
+  or score-exclusion controls; reported scores, flag colors, and
   contribution fields are never changed by the widget. Highlighting
   survives sorting and redraws. The dated breakdown has six columns:
   KRI, Flag, Action state, Last Addressed, Days Ago, and Counted. Its

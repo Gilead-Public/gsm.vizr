@@ -117,87 +117,6 @@ const addComparisonRiskDetail = function (el, input) {
         const state = displayedState(row);
         return state === 'Closed Action' ? '#2da44e' : state === 'Open Action' ? '#cf222e' : '#666666';
     };
-    const groupResult = (row, metric) => input.dfResults.find((result) =>
-        result.GroupID === row.GroupID && result.MetricID === metric &&
-        (isMissing(row.StudyID) || isMissing(result.StudyID) || row.StudyID === result.StudyID));
-    const downloadCsv = () => {
-        const columns = [
-            ['CSVSchemaVersion', () => 2, 'number'],
-            ['StudyID', (row) => row.StudyID || groupResult(row, comparisonMetric)?.StudyID],
-            ['SnapshotDate', (row) => row.SnapshotDate || groupResult(row, comparisonMetric)?.SnapshotDate || row.ActionAsOfDate, 'date'],
-            ['GroupLevel', (row) => row.GroupLevel || input.strGroupLevel || groupResult(row, comparisonMetric)?.GroupLevel],
-            ['GroupID', (row) => row.GroupID],
-            ['MetricID', (row) => row.MetricID],
-            ['MetricLabel', (row) => metricLabels[row.MetricID] || row.MetricID],
-            ['CurrentFlag', (row) => row.Flag, 'number'],
-            ['ReviewFlag', detailFlag, 'number'],
-            ['LastFlaggedDate', (row) => row.LastFlaggedDate, 'date'],
-            ['DaysSinceFlag', (row) => row.DaysSinceFlag, 'number'],
-            ['ActionState', displayedState],
-            ['ActionedFlag', (row) => row.ActionedFlag, 'number'],
-            ['LastAddressed', (row) => row.LastActionedDate, 'date'],
-            ['DaysAgo', (row) => row.DaysSinceAction, 'number'],
-            ['ActionedDateSource', (row) => row.ActionedDateSource],
-            ['ActionDateIsProxy', (row) => row.ActionDateIsProxy, 'boolean'],
-            ['ActionWindowDays', (row) => row.ActionWindowDays, 'number'],
-            ['Weight', (row) => row.Weight, 'number'],
-            ['WeightMax', (row) => row.WeightMax, 'number'],
-            ['EffectiveWeight', (row) => row.EffectiveWeight, 'number'],
-            ['Counted', countedLabel],
-            ['ActionFactor', (row) => row.ActionFactor, 'number'],
-            ['SnapshotDecisionExcluded', (row) => row.SnapshotDecisionExcluded, 'boolean'],
-            ['DecisionReason', (row) => row.SnapshotDecisionReason || row.ActionReason || row.ActionCoverageReason],
-            ['DecisionCoversFinding', (row) => row.DecisionCoversFinding, 'boolean'],
-            ['SiteRiskScore', (row) => groupResult(row, input.strSiteRiskMetric || 'Analysis_srs0001')?.Score, 'number'],
-            ['SiteRiskNumerator', (row) => groupResult(row, input.strSiteRiskMetric || 'Analysis_srs0001')?.Numerator, 'number'],
-            ['SiteRiskDenominator', (row) => groupResult(row, input.strSiteRiskMetric || 'Analysis_srs0001')?.Denominator, 'number'],
-            ['ComparisonRiskScore', (row) => groupResult(row, comparisonMetric)?.Score, 'number'],
-            ['ComparisonRiskNumerator', (row) => groupResult(row, comparisonMetric)?.Numerator, 'number'],
-            ['ComparisonRiskDenominator', (row) => groupResult(row, comparisonMetric)?.Denominator, 'number'],
-            ['ComparisonRiskMetricID', () => comparisonMetric],
-            ['ComparisonRiskLabel', () => input.strComparisonRiskLabel],
-            ['ActionPolicy', (row) => row.ActionPolicy],
-            ['ActionAsOfDate', (row) => row.ActionAsOfDate, 'date'],
-            ['ActionExtractionDate', (row) => row.ActionExtractionDate || row.ExtractionDate, 'date'],
-            ['RiskSignalID', (row) => row.RiskSignalID || row.ActionRiskSignalID],
-            ['ActionID', (row) => row.ActionID]
-        ];
-        const encode = (value, type) => {
-            if (isMissing(value)) return '';
-            if (type === 'number') return Number.isFinite(Number(value)) ? String(Number(value)) : '';
-            if (type === 'boolean') {
-                if ([true, 'true', 'TRUE', 1, '1'].includes(value)) return 'true';
-                if ([false, 'false', 'FALSE', 0, '0'].includes(value)) return 'false';
-                return '';
-            }
-            if (type === 'date') {
-                const timestamp = Date.parse(value);
-                return Number.isFinite(timestamp) ? new Date(timestamp).toISOString().slice(0, 10) : '';
-            }
-            let text = String(value);
-            if (/^[\s\u0000-\u001f]*[=+\-@]/.test(text) || /^[\t\r\n]/.test(text)) text = `'${text}`;
-            return `"${text.replace(/"/g, '""')}"`;
-        };
-        const groups = Object.keys(detailByGroup).sort((left, right) => kriOrder.compare(left, right));
-        const rows = groups.flatMap((group) => reviewRows(detailByGroup[group]));
-        const csv = [columns.map(([name]) => encode(name)).join(','),
-            ...rows.map((row) => columns.map(([, value, type]) => encode(value(row), type)).join(','))]
-            .join('\r\n') + '\r\n';
-        const context = rows[0];
-        const study = context && (context.StudyID || groupResult(context, comparisonMetric)?.StudyID);
-        const snapshot = context && (context.ActionAsOfDate || context.SnapshotDate || groupResult(context, comparisonMetric)?.SnapshotDate);
-        const filename = ['risk-review', study, snapshot].filter((value) => !isMissing(value))
-            .map((value) => String(value).replace(/[^A-Za-z0-9._-]/g, '_')).join('_') + '.csv';
-        const url = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' }));
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 0);
-    };
-
     const buildPanel = () => {
         const panel = document.createElement('div');
         panel.style.cssText = 'padding: 4px 8px 8px; font-size: 0.9em; text-align: left; overflow-x: auto;';
@@ -369,6 +288,27 @@ const addComparisonRiskDetail = function (el, input) {
         });
         highlightLabel.append(highlightCheckbox, document.createTextNode(' Highlight actions within 90 days'));
         controls.appendChild(highlightLabel);
+        // Legend for the highlighted KRI cells; swatches reuse the cell colors.
+        const legend = document.createElement('div');
+        legend.className = 'group-overview--action-legend';
+        legend.setAttribute('role', 'list');
+        legend.setAttribute('aria-label', 'Highlighted KRI legend');
+        legend.style.cssText = 'display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;';
+        [['Closed Action', 'Closed action'], ['Open Action', 'Open action'],
+            ['Awaiting Triage', 'Other action state']].forEach(([state, label]) => {
+            const item = document.createElement('span');
+            item.setAttribute('role', 'listitem');
+            item.style.cssText = 'display: inline-flex; align-items: center; gap: 4px;';
+            const swatch = document.createElement('span');
+            swatch.className = 'group-overview--action-legend-swatch';
+            swatch.setAttribute('aria-hidden', 'true');
+            swatch.style.cssText = 'display: inline-block; width: 16px; height: 16px; box-sizing: border-box;' +
+                `background-color: ${highlightColor({ ActionState: state })};` +
+                `box-shadow: inset 0 0 0 3px ${highlightBorderColor({ ActionState: state })};`;
+            item.append(swatch, document.createTextNode(label));
+            legend.appendChild(item);
+        });
+        controls.appendChild(legend);
         const table = el.querySelector('table.group-overview');
         tableScroll = document.createElement('div');
         tableScroll.className = 'group-overview--comparison-scroll';
@@ -378,21 +318,8 @@ const addComparisonRiskDetail = function (el, input) {
         tableScroll.setAttribute('aria-label', `Site Risk Score and ${input.strComparisonRiskLabel || 'Adjusted Risk Score'}`);
         table.before(tableScroll);
         tableScroll.appendChild(table);
+        el.insertBefore(controls, tableScroll);
     }
-    const downloadButton = document.createElement('button');
-    downloadButton.type = 'button';
-    downloadButton.className = 'btn btn-default btn-sm';
-    downloadButton.title = 'Download review rows for all sites, independent of table filters and highlighting.';
-    if (input.strDownloadIcon) {
-        const icon = document.createElement('span');
-        icon.setAttribute('aria-hidden', 'true');
-        icon.innerHTML = input.strDownloadIcon;
-        downloadButton.appendChild(icon);
-    }
-    downloadButton.appendChild(document.createTextNode(' Download CSV'));
-    downloadButton.addEventListener('click', downloadCsv);
-    controls.appendChild(downloadButton);
-    el.insertBefore(controls, tableScroll || el.querySelector('table.group-overview'));
     return () => {
         observer.disconnect();
         el.querySelectorAll('td.group-overview--recent-action').forEach((cell) => {
